@@ -35,6 +35,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity{
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity{
     Protocol P = new Protocol();
     Protocol P1 = new Protocol();
     int i01  = 0;
+    int ViewOldMessages=10;
 
 
     @Override
@@ -129,6 +131,11 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.connectOneServer: // - Действия при выборе пунка меню "Соединяемся с сервером 35.208.16.242"
                 HOST = "35.208.16.242";
+                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                onOpenClick();
+                return true;
+            case R.id.connectVladLenServer: // - Действия при выборе пунка меню "Соединяемся с сервером 45.12.18.246"
+                HOST = "45.12.18.246";
                 tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
                 onOpenClick();
                 return true;
@@ -203,23 +210,36 @@ public class MainActivity extends AppCompatActivity{
             case R.id.skin_settings:
                 // - Действия при выборе пунка меню "Сменить скин"
                 //tvMessage.setBackgroundResource(R.drawable.fon1); // первый вариант
-
-                tvMessage.setBackgroundResource(R.drawable.fonklen); // первый вариант
+                tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
                 //tvMessage.setBackgroundColor(getResources().getColor(R.color.tvBackground)); // второй вариант
                 return true;
             case R.id.get_prikol:
                 // - Действия при выборе пунка меню "Получить Прикол!"
+                //tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
                 return true;
             case R.id.getMaxOLdMessages10:
-                // - Действия при выборе пунка меню "Отправлять по 10 сообщений"
-                Date data = new Date(); data.getTime(); String strCount="10";
-                String strCountPL = "13/"+ idThisClient + "/" + data.toString() +"/" + nameThisClient+"/3/6/7/" + strCount + "/43";
-                System.out.println("strCountPL = " + strCountPL);
-                System.out.println("strCount = " + strCount + " / idThisClient = " + idThisClient + " / nameThisClient = " + nameThisClient);
-
-                    //В этом методе поток вывода на сервер не досткпен ввода потому что он локальный в другом методе
-                    //out = new DataOutputStream(mConnect.getSocket().getOutputStream());
-                    //out.writeUTF(Pack.paked("13/"+ idThisClient + "/" + data.toString() +"/" + nameThisClient+"/3/6/7/" + strCount + "/43", Sh));
+                // - Действия при выборе пунка меню "Показать последние 10 сообщений"
+                tvMessage.append("\n Последние 10 сообщений чата:");
+                SendTechMessagesClientToServer(13,"10");
+                return true;
+            case R.id.getMaxOLdMessages20:
+                // - Действия при выборе пунка меню "Показать последние20 сообщений"
+                tvMessage.append("\n Последние 20 сообщений чата:");
+                SendTechMessagesClientToServer(13,"20");
+                return true;
+            case R.id.getMaxOLdMessages40:
+                // - Действия при выборе пунка меню "Показать последние 40 сообщений"
+                tvMessage.append("\n Последние 40 сообщений чата:");
+                SendTechMessagesClientToServer(13,"40");
+                return true;
+            case R.id.getMaxOLdMessages80:
+                // - Действия при выборе пунка меню "Показать последние 80 сообщений"
+                tvMessage.append("\n Последние 80 сообщений чата:");
+                SendTechMessagesClientToServer(13,"80");
+                return true;
+            case R.id.viewMainSocket:
+                // - Действия при выборе пунка меню "Показать текущий Сокет"
+                //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\nВыберите новый IP-адрес и порт");
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -249,7 +269,7 @@ public class MainActivity extends AppCompatActivity{
                     String userName =  P.message;
                     System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" +P.data + " Message=" + P.message);
                     final String str = userName;
-
+                    //tvMessage.setText("\n" + "Установлено соединение Socket=" + Socket);
                     // Разблокирование кнопок в UI потоке
                     runOnUiThread(new Runnable() {
                         @Override
@@ -338,6 +358,7 @@ public class MainActivity extends AppCompatActivity{
             }
         }).start();
     }
+// ==================== Обработчик нажатия кнопки Send(Ок) ============================================
     private void onSendClick()
     {
         if (mConnect == null) {
@@ -371,6 +392,34 @@ public class MainActivity extends AppCompatActivity{
             }).start();
         }
     }
+//==================================== Обработчик отправки на сервер технических сообщений =======================
+    private void SendTechMessagesClientToServer(final int typeMessage, final String message)
+    {
+        if (mConnect == null) {
+            Log.d(Connection.LOG_TAG, "Соединение не установлено");
+        }  else {
+            Log.d(Connection.LOG_TAG, "Отправка сообщения");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (typeMessage==13) {  // - Запрос(Тип=13) на выдачу предыдущих № сообщений с сервера клиенту в окно чата.
+                        String str = message;
+                        //nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
+                        Date data = new Date();
+                        data.getTime();
+                        System.out.println("Отправляем техническое сообщение на сервер. Тип сообщения = " + typeMessage + "  Время и дата = " + data + " Само сообщение = " + str);
+                        try {
+                            out.writeUTF(Pack.paked(typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/77", Sh));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+
+        }
+    }
+//============================== Обработчик нажатия кнопки и выбора элемента меню отключения от сети(от сервера) ==========================
     private void onCloseClick()
     {
         // Закрытие соединения

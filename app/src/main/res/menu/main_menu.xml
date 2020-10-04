@@ -4,20 +4,24 @@
     <item
         android:id="@+id/server_change"
         android:orderInCategory="1"
-        android:title="Сменить адрес сервера сообщений" >
+        android:title="Выбрать сервер для подключения" >
         <menu>
             <item
                 android:id="@+id/connectLocal"
                 android:orderInCategory="11"
-                android:title="Подключаться на сервер 10.0.2.2" />
+                android:title="Чат в локале AndroidSt - 10.0.2.2" />
             <item
-                android:id="@+id/connectOneServer"
-                android:orderInCategory="12"
-                android:title="Подключаться на севрер 35.208.16.242" />
+            android:id="@+id/connectOneServer"
+            android:orderInCategory="12"
+            android:title="Чат на сервере DS - 35.208.16.242" />
+            <item
+                android:id="@+id/connectVladLenServer"
+                android:orderInCategory="13"
+                android:title="Чат на сервере VL - 45.12.18.246" />
             <item
                 android:id="@+id/connectTwoServer"
-                android:orderInCategory="13"
-                android:title="Подключаться на сервер X(ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ)" />
+                android:orderInCategory="14"
+                android:title="Указать адрес - (ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ)" />
         </menu>
     </item>>
     <item
@@ -70,5 +74,10 @@
                 android:orderInCategory="84"
                 android:title="По 80 сообщений" />
         </menu>
+
     </item>
+    <item
+        android:id="@+id/viewMainSocket"
+        android:orderInCategory="9"
+        android:title="Показать мой Сокет"/>
 </menu>
