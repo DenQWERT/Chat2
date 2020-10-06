@@ -60,19 +60,19 @@
             <item
                 android:id="@+id/getMaxOLdMessages10"
                 android:orderInCategory="81"
-                android:title="По 10 сообщений" />
+                android:title="Последние 10 сообщений" />
             <item
                 android:id="@+id/getMaxOLdMessages20"
                 android:orderInCategory="82"
-                android:title="По 20 сообщений" />
+                android:title="Последние 20 сообщений" />
             <item
-                android:id="@+id/getMaxOLdMessages40"
+                android:id="@+id/getMaxOLdMessages50"
                 android:orderInCategory="83"
-                android:title="По 40 сообщений" />
+                android:title="Последние 50 сообщений" />
             <item
-                android:id="@+id/getMaxOLdMessages80"
+                android:id="@+id/getMaxOLdMessages100"
                 android:orderInCategory="84"
-                android:title="По 80 сообщений" />
+                android:title="Последние 100 сообщений" />
         </menu>
 
     </item>

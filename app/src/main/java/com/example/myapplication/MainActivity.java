@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity{
     Protocol P = new Protocol();
     Protocol P1 = new Protocol();
     int i01  = 0;
-    int ViewOldMessages=10;
+    String oldMessage="";
 
 
     @Override
@@ -219,23 +219,23 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.getMaxOLdMessages10:
                 // - Действия при выборе пунка меню "Показать последние 10 сообщений"
-                tvMessage.append("\n Последние 10 сообщений чата:");
+                tvMessage.append("\n---------------------------------\nПоследние 10 сообщений чата:");
                 SendTechMessagesClientToServer(13,"10");
                 return true;
             case R.id.getMaxOLdMessages20:
                 // - Действия при выборе пунка меню "Показать последние20 сообщений"
-                tvMessage.append("\n Последние 20 сообщений чата:");
+                tvMessage.append("\n---------------------------------\nПоследние 20 сообщений чата:");
                 SendTechMessagesClientToServer(13,"20");
                 return true;
-            case R.id.getMaxOLdMessages40:
+            case R.id.getMaxOLdMessages50:
                 // - Действия при выборе пунка меню "Показать последние 40 сообщений"
-                tvMessage.append("\n Последние 40 сообщений чата:");
-                SendTechMessagesClientToServer(13,"40");
+                tvMessage.append("\n---------------------------------\nПоследние 50 сообщений чата:");
+                SendTechMessagesClientToServer(13,"50");
                 return true;
-            case R.id.getMaxOLdMessages80:
+            case R.id.getMaxOLdMessages100:
                 // - Действия при выборе пунка меню "Показать последние 80 сообщений"
-                tvMessage.append("\n Последние 80 сообщений чата:");
-                SendTechMessagesClientToServer(13,"80");
+                tvMessage.append("\n---------------------------------\nПоследние 100 сообщений чата:");
+                SendTechMessagesClientToServer(13,"100");
                 return true;
             case R.id.viewMainSocket:
                 // - Действия при выборе пунка меню "Показать текущий Сокет"
@@ -269,7 +269,7 @@ public class MainActivity extends AppCompatActivity{
                     String userName =  P.message;
                     System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" +P.data + " Message=" + P.message);
                     final String str = userName;
-                    //tvMessage.setText("\n" + "Установлено соединение Socket=" + Socket);
+                    //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
                     // Разблокирование кнопок в UI потоке
                     runOnUiThread(new Runnable() {
                         @Override
@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity{
                             //System.out.println("До разбора P="  + P1.idUser + " " + P1.message.toString());
                             P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
                             i01++;
-                            System.out.println(i01 + " После разбора P=" + P1.idUser + " " + P1.message.toString());
+                            System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
                             /*String names = "Маша, Саша]##МашаСаша"; //response.substring(1);
                             final String[] responseArray = names.split("]##");
                             String[] allUsers = responseArray[0].split(",");
@@ -302,35 +302,40 @@ public class MainActivity extends AppCompatActivity{
                             }*/
 
 // ================================   Выводим клиенту сообщения на экран =======================================
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    int colorN=0;
-                                    if (P1.idUser%3==0) colorN = Color.RED;
-                                    if (P1.idUser%3==1) colorN = Color.BLUE;
-                                    if (P1.idUser%3==2) colorN = Color.MAGENTA;
-                                    //if (P1.idUser%6==3) colorN = Color.BLACK;
-                                    //if (P1.idUser%6==4) colorN = Color.BLUE;
-                                    //if (P1.idUser%6==5) colorN = Color.GREEN;
+                            //if (oldMessage.equals(P1.message)==false) {
+                            //if (oldMessage.toString()!=P1.message.toString()) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // - Выбираем цвет начала сообщения в окне чата пользователя
+                                        int colorN = 0;
+                                        if (P1.idUser % 3 == 0) colorN = Color.RED;
+                                        if (P1.idUser % 3 == 1) colorN = Color.BLUE;
+                                        if (P1.idUser % 3 == 2) colorN = Color.MAGENTA;
+                                        //if (P1.idUser%6==3) colorN = Color.BLACK;
+                                        //if (P1.idUser%6==4) colorN = Color.BLUE;
+                                        //if (P1.idUser%6==5) colorN = Color.GREEN;
 
-                                    //tvUsers.setText(sb.toString());
-                                    //tvMessage.append("\n" + responseArray[1]);
-                                    tvUsers.setText(P1.name);
+                                        //tvUsers.setText(sb.toString());
+                                        //tvMessage.append("\n" + responseArray[1]);
+                                        ///tvUsers.setText(P1.name);
 
-                                    String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':')+3); // - Выбираем из времени часы и минуты в строковом виде
+                                        // - Выводим в окно чата пользователя новое полученное сообщение
+                                        String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
+                                        Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
+                                        wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                        tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
+                                        Spannable wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
+                                        wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                        tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
+                                        //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+                                        oldMessage=P1.message;
 
-                                    Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
-                                    wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                    tvMessage.append(wordOne);
-                                    Spannable wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
-                                    wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                    tvMessage.append(wordTwo);
-                                    //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+                                        //TimeUnit.MILLISECONDS.sleep(100);
 
-                                    ///tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
-                                }
-                            });
-
+                                    }
+                                });
+                            //}
                         } catch (IOException exception) {
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -370,23 +375,25 @@ public class MainActivity extends AppCompatActivity{
                 public void run() {
 
                     String str = etMessage.getText().toString();
-                    nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
-                    try {
-                        //out.writeUTF(str);
-                        Date data = new Date();
-                        data.getTime();
+                    if (str.length()>0) {
+                        nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
+                        try {
+                            //out.writeUTF(str);
+                            Date data = new Date();
+                            data.getTime();
 
-                        System.out.println("Время и дата = " + data );
-                        out.writeUTF(Pack.paked("02/"+ idThisClient + "/" + data.toString() +"/" + nameThisClient+"/1/6/7/" + str + "/41", Sh));
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                etMessage.setText("");
-                                etMessage.requestFocus();
-                            }
-                        });
-                    } catch (Exception e) {
-                        Log.e(Connection.LOG_TAG, e.getMessage());
+                            System.out.println("Время и дата = " + data);
+                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/41", Sh));
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    etMessage.setText("");
+                                    etMessage.requestFocus();
+                                }
+                            });
+                        } catch (Exception e) {
+                            Log.e(Connection.LOG_TAG, e.getMessage());
+                        }
                     }
                 }
             }).start();

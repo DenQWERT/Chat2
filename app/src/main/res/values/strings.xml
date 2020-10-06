@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Чат-Мессенджер, vers.1.9</string>
+    <string name="app_name">Чат-Мессенджер, vers.2.1</string>
     <string name="hinEtMessage">Введите сообщение...</string>
     <string name="openBtn">Войти</string>
     <string name="closeBtn">Выйти</string>
