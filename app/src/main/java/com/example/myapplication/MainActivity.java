@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity{
     TextView tvMessage;
     EditText etMessage;
     Button sendBtn;
-    Button openBtn;
-    Button closeBtn;
+    ///Button openBtn;
+    ///Button closeBtn;
 
 
 
@@ -79,35 +79,35 @@ public class MainActivity extends AppCompatActivity{
         tvServerChange = findViewById(R.id.serverIpChangeWindow);
         etMessage = findViewById(R.id.etMessage);
         sendBtn = findViewById(R.id.sendBtn);
-        openBtn = findViewById(R.id.openBtn);
-        closeBtn = findViewById(R.id.closeBtn);
+        ///openBtn = findViewById(R.id.openBtn);
+        ///closeBtn = findViewById(R.id.closeBtn);
 
         sendBtn.setEnabled(false);
-        closeBtn.setEnabled(false);
+        ///closeBtn.setEnabled(false);
 
         //tvMessage.setBackgroundResource(R.drawable.fonklen);
 
 
 
 
-        openBtn.setOnClickListener(new View.OnClickListener() {
+        /*openBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onOpenClick();
             }
-        });
+        });*/
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onSendClick();
             }
         });
-        closeBtn.setOnClickListener(new View.OnClickListener() {
+        /*closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onCloseClick();
             }
-        });
+        });*/
 
         // - Скрываем экранную клавиатуру при запуске приложения :
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -204,8 +204,9 @@ public class MainActivity extends AppCompatActivity{
                 AlertDialog alert = builder.create();
                 alert.show();
                 return true;
-            case R.id.set_settings:
-                // - Действия при выборе пунка меню "Настройки приложения"
+            case R.id.viewAllUsers:
+                // - Действия при выборе пунка меню "Список кто сегодня был в чате"
+                SendTechMessagesClientToServer(14,"Сервер, покажи всех кто был в чате!");
                 return true;
             case R.id.skin_settings:
                 // - Действия при выборе пунка меню "Сменить скин"
@@ -213,9 +214,10 @@ public class MainActivity extends AppCompatActivity{
                 tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
                 //tvMessage.setBackgroundColor(getResources().getColor(R.color.tvBackground)); // второй вариант
                 return true;
-            case R.id.get_prikol:
-                // - Действия при выборе пунка меню "Получить Прикол!"
-                //tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
+            case R.id.get_users:
+                // - Действия при выборе пунка меню "Показать кто сейчас в чате"
+                System.out.println("Запрашиваем список кто сейчас в чате");
+                SendTechMessagesClientToServer(11,"Сервер, покажи кто сейчас в чате");
                 return true;
             case R.id.getMaxOLdMessages10:
                 // - Действия при выборе пунка меню "Показать последние 10 сообщений"
@@ -277,7 +279,7 @@ public class MainActivity extends AppCompatActivity{
 
                             tvMessage.setText("\n" + str);
                             sendBtn.setEnabled(true);
-                            closeBtn.setEnabled(true);
+                            ///closeBtn.setEnabled(true);
                         }
                     });
 
@@ -309,12 +311,13 @@ public class MainActivity extends AppCompatActivity{
                                     public void run() {
                                         // - Выбираем цвет начала сообщения в окне чата пользователя
                                         int colorN = 0;
-                                        if (P1.idUser % 3 == 0) colorN = Color.RED;
-                                        if (P1.idUser % 3 == 1) colorN = Color.BLUE;
-                                        if (P1.idUser % 3 == 2) colorN = Color.MAGENTA;
-                                        //if (P1.idUser%6==3) colorN = Color.BLACK;
-                                        //if (P1.idUser%6==4) colorN = Color.BLUE;
-                                        //if (P1.idUser%6==5) colorN = Color.GREEN;
+                                        if (P1.idUser % 6 == 5) colorN = Color.RED;
+                                        if (P1.idUser % 6 == 4) colorN = Color.BLUE;
+                                        if (P1.idUser % 6 == 3) colorN = Color.MAGENTA;
+                                        if (P1.idUser % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
+                                        if (P1.idUser % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
+                                        if (P1.idUser % 6 == 0) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+                                        // https://htmlweb.ru/html/table_colors.php
 
                                         //tvUsers.setText(sb.toString());
                                         //tvMessage.append("\n" + responseArray[1]);
@@ -409,7 +412,10 @@ public class MainActivity extends AppCompatActivity{
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (typeMessage==13) {  // - Запрос(Тип=13) на выдачу предыдущих № сообщений с сервера клиенту в окно чата.
+                    if ((typeMessage==13)||(typeMessage==11)||(typeMessage==14)) {
+                        // - Запрос(Тип=13) на выдачу предыдущих № сообщений с сервера клиенту в окно чата.
+                        // запрос на список кто сейчас в чате = 11;
+                        // запрос на список ВСЕХ кто был в чате = 14;
                         String str = message;
                         //nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
                         Date data = new Date();
@@ -433,7 +439,7 @@ public class MainActivity extends AppCompatActivity{
         mConnect.closeConnection();
         // Блокирование кнопок
         sendBtn .setEnabled(false);
-        closeBtn.setEnabled(false);
+        ///closeBtn.setEnabled(false);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
