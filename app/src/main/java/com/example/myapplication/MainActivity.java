@@ -269,7 +269,6 @@ public class MainActivity extends AppCompatActivity{
                             i01++;
                             System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
 
-
 // ================================   Выводим клиенту сообщения на экран =======================================
                             //if (oldMessage.equals(P1.message)==false) {
                             //if (oldMessage.toString()!=P1.message.toString()) {
