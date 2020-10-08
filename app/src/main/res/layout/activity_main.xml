@@ -9,93 +9,140 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/tvUsers"
-        android:layout_width="0dp"
+        android:id="@+id/tvMessage"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="3dp"
+        android:layout_weight="3"
         android:background="@drawable/my_border"
-        android:text="Здесь список подключенных пользователей"
-        android:textAlignment="center"
-        android:textSize="18sp"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:scrollbars="vertical"
+        android:textAlignment="viewStart"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <!-- android:paddingLeft= Это отступ текста в окне сообщений пользователя от левой стороны окна -->
-    <!-- android:scrollbars = "vertical" - устанавливаем вертикальный скролинг -->
-<!--    android:layout_marginEnd="16dp" -->
-<!--    android:layout_marginStart="6dp" - расстояние слева от границы до блока -->
-    <TextView
-        android:id="@+id/tvMessage"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="6dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="6dp"
-        android:layout_marginBottom="6dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
-        android:background="@drawable/my_border"
-        android:textAlignment="viewStart"
-        android:scrollbars = "vertical"
-        android:textSize="15sp"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvUsers" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="6dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="4dp"
         android:layout_marginBottom="6dp"
+        android:layout_weight="1"
         android:background="@drawable/my_border"
-        android:windowSoftInputMode="adjustResize"
         android:fitsSystemWindows="true"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/linearLayout2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:windowSoftInputMode="adjustResize"
+        app:layout_constraintTop_toBottomOf="@+id/tvMessage"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <EditText
             android:id="@+id/etMessage"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:windowSoftInputMode="stateVisible|adjustPan|adjustResize"
-            android:singleLine="false"
+            android:layout_height="match_parent"
             android:layout_weight="2"
             android:ems="8"
+            android:inputType="textMultiLine"
+            android:scrollbars = "vertical"
+            android:gravity="top|left"
+            android:lines="20"
+            android:minLines="5"
+            android:imeOptions="actionDone"
             android:hint="@string/hinEtMessage"
-            android:inputType="textPersonName"  />
+            android:singleLine="false"
+            android:windowSoftInputMode="stateVisible|adjustPan|adjustResize" />
 
         <Button
             android:id="@+id/sendBtn"
             android:layout_width="5dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_margin="6dp"
+            android:layout_weight="1"
             android:text="@string/sendBtn" />
-
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayout2"
-        android:layout_width="00dp"
-        android:layout_height="00dp"
-        android:layout_marginStart="6dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="4dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-    </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- android:paddingLeft= Это отступ текста в окне сообщений пользователя от левой стороны окна -->
+    <!-- android:scrollbars = "vertical" - устанавливаем вертикальный скролинг -->
+    <!--    android:layout_marginEnd="16dp" -->
+    <!--    android:layout_marginStart="6dp" - расстояние слева от границы до блока
+     android:layout_height="match_parent" - максимальная высота или длинна  в блоке
+       wrap_content -  Минимальная высота или длинна в блоке
+       match_parent -  Максимальные размеры в родительском блоке
+       android:layout_marginTop="4dp" - отступ сверху от границы выделенного блока
+       android:layout_marginStart="0dp" - отступ слева от границы выделенного блока
+       android:layout_marginEnd="4dp" - отступ справа от границы выделенного блока
+       android:layout_weight="1" количество весов для элемента. Чем больше тем элемент больше места отжирает на экране
+        app:layout_constraintBottom_toTopOf= - элемент в который блок упирается снизу
+        Настройка в Scen Bildere http://developer.alexanderklimov.ru/android/layout/constraintlayout.php
+        Позиционирование по границам: https://metanit.com/java/android/3.8.php
+        layout_constraintLeft_toLeftOf: левая граница позиционируется относительно левой границы другого элемента
+        layout_constraintLeft_toRightOf: левая граница позиционируется относительно правой границы другого элемента
+        layout_constraintRight_toLeftOf: правая граница позиционируется относительно левой границы другого элемента
+        layout_constraintRight_toRightOf: правая граница позиционируется относительно правой границы другого элемента
+        layout_constraintTop_toTopOf: верхняя граница позиционируется относительно верхней границы другого элемента
+        layout_constraintBottom_toBottomOf: нижняя граница позиционируется относительно нижней границы другого элемента
+        layout_constraintBaseline_toBaselineOf: базовая линия позиционируется относительно базовой линии другого элемента
+        layout_constraintTop_toBottomOf: верхняя граница позиционируется относительно нижней границы другого элемента
+        layout_constraintBottom_toTopOf: нижняя граница позиционируется относительно верхней границы другого элемента
+        layout_constraintStart_toEndOf: аналог layout_constraintLeft_toRightOf
+        layout_constraintStart_toStartOf: аналог layout_constraintLeft_toLeftOf
+        layout_constraintEnd_toStartOf: аналог layout_constraintRight_toLeftOf
+        layout_constraintEnd_toEndOf: аналог layout_constraintRight_toRightOf
+
+     android:inputType="textPersonName"
+     android:inputType="textMultiLine" - разрешает ввод многострочного текста
+
+    Отступы:
+    android:layout_marginLeft: отступ от левой границы
+    android:layout_marginRight: отступ от правой границы
+    android:layout_marginTop: отступ от верхней границы
+    android:layout_marginBottom: отступ от нижней границы
+    android:layout_marginStart: отступ от левой границы
+    android:layout_marginEnd: отступ от правой границы
+
+    http://developer.alexanderklimov.ru/android/layout/constraintlayout.php
+    Chains - Скованные одной цепью
+
+Несколько элементов можно сковать одной цепью. Допустим, у нас есть три кнопки. Выделяем их и через контекстное меню выбираем Center Horizontally. Снизу у выбранных компонентов появится символ цепи, а между ними будут нарисована связь в виде цепей. Если последовательно щёлкать по значку цепи, то увидите, как кнопки будут центрироваться с разными стилями:
+
+    spread - Свободное пространство равномерно распределяется между выбранными компонентами и краями родителя (например, экрана)
+    spread_inside - Крайние компоненты прижимаются к границам родителя, свободное пространство равномерно распределяется только между остальными компонентами
+    packed - Свободное пространство равномерно распределяется между крайними компонентами и границами родителя. Вы можете использовать margin для отступов
+За цепи отвечают стили.
+
+    app:layout_constraintHorizontal_chainStyle="spread"
+    app:layout_constraintVertical_chainStyle="spread"
+    app:layout_constraintHorizontal_chainStyle="spread_inside"
+    app:layout_constraintVertical_chainStyle="spread_inside"
+    app:layout_constraintHorizontal_chainStyle="packed"
+    app:layout_constraintVertical_chainStyle="packed"
+
+Также можно присвоить кнопкам вес, когда одна кнопка может быть больше остальных, это поведение знакомо по LinearLayout. Для этих целей используются атрибуты
+
+    layout_constraintHorizontal_weight
+    layout_constraintVertical_weight
+
+Как и в LinearLayout, чтобы использовать вес, надо поставить размер компонента в 0dp.
+
+мПроценты
+
+Можно указывать значения ширины и высоты в процентах через атрибуты layout_constraintWidth_percent, layout_constraintHeight_percent. Все View-компоненты поддерживают данные атрибуты. Они позволяют ограничить компонент процентным значением в рамках всего доступного пространства. Например, мы хотим видеть кнопку, которая будет занимать 70% в рамках свободного для неё места.
+
+
+<Button
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    app:layout_constraintWidth_percent="0.7" />
+
+    -->

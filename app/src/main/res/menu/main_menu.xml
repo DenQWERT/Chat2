@@ -43,7 +43,7 @@
     <item
         android:id="@+id/viewAllUsers"
         android:orderInCategory="6"
-        android:title="! - Список всех кто был в чате" />
+        android:title="! - Список всех кто БЫЛ в чате" />
     <item
         android:id="@+id/skin_settings"
         android:orderInCategory="7"
@@ -51,7 +51,7 @@
     <item
         android:id="@+id/get_users"
         android:orderInCategory="7"
-        android:title="! - Показать кто сейчас в чате" />
+        android:title="! - Показать кто СЕЙЧАС в чате" />
     <item
         android:id="@+id/getMaxOLdMessages"
         android:orderInCategory="8"

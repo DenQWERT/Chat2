@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
-//import android.telecom.Connection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
@@ -24,7 +23,6 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.view.Menu;
 
-//import android.support.v7.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -52,8 +50,6 @@ public class MainActivity extends AppCompatActivity{
     ///Button openBtn;
     ///Button closeBtn;
 
-
-
     static int Sh = 2;  // Sh = 2 - шифруем  Sh=0 не шифруем
     //private String HOST = "10.0.2.2";
     //private String HOST = "35.235.241.19";
@@ -73,45 +69,26 @@ public class MainActivity extends AppCompatActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        tvUsers = findViewById(R.id.tvUsers);
         tvMessage = findViewById(R.id.tvMessage);
         tvServerChange = findViewById(R.id.serverIpChangeWindow);
         etMessage = findViewById(R.id.etMessage);
         sendBtn = findViewById(R.id.sendBtn);
-        ///openBtn = findViewById(R.id.openBtn);
-        ///closeBtn = findViewById(R.id.closeBtn);
 
         sendBtn.setEnabled(false);
-        ///closeBtn.setEnabled(false);
 
         //tvMessage.setBackgroundResource(R.drawable.fonklen);
-
-
-
-
-        /*openBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onOpenClick();
-            }
-        });*/
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onSendClick();
             }
         });
-        /*closeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onCloseClick();
-            }
-        });*/
+
 
         // - Скрываем экранную клавиатуру при запуске приложения :
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
+        //InputMethodManager inputManager = (InputMethodManager) context. getSystemService(Context.INPUT_METHOD_SERVICE);
+        //inputManager.hideSoftInputFromWindow( this.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
 //============================= Меню ===============================================================================
     @Override // - создаем визуальный элемент меню в виде трех точк справа сверху на активности.
@@ -250,7 +227,8 @@ public class MainActivity extends AppCompatActivity{
     private void onOpenClick(){
         // Создание подключения
         mConnect = new Connection(HOST, PORT);
-        tvMessage.setMovementMethod(new ScrollingMovementMethod());
+        tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
+        //etMessage.setMovementMethod(new ScrollingMovementMethod());
         tvMessage.setTextColor(Color.RED); // - установим красный текст в окне сообщений
 
 
@@ -286,22 +264,11 @@ public class MainActivity extends AppCompatActivity{
                     while (!mConnect.getSocket().isClosed()) {
                         String response = null;
                         try {
-                            //response = in.readUTF();
-                            ///response = Pack.unpaked(in.readUTF(),Sh);
-                            //Protocol P1 = new Protocol();
                             //System.out.println("До разбора P="  + P1.idUser + " " + P1.message.toString());
                             P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
                             i01++;
                             System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
-                            /*String names = "Маша, Саша]##МашаСаша"; //response.substring(1);
-                            final String[] responseArray = names.split("]##");
-                            String[] allUsers = responseArray[0].split(",");
-                            //String[] allUsers = "Маша Саша";
-                            final StringBuilder sb = new StringBuilder();
-                            for (String allUser : allUsers) {
-                                String name = allUser.trim();
-                                sb.append(name).append("\n");
-                            }*/
+
 
 // ================================   Выводим клиенту сообщения на экран =======================================
                             //if (oldMessage.equals(P1.message)==false) {
@@ -319,10 +286,6 @@ public class MainActivity extends AppCompatActivity{
                                         if (P1.idUser % 6 == 0) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
                                         // https://htmlweb.ru/html/table_colors.php
 
-                                        //tvUsers.setText(sb.toString());
-                                        //tvMessage.append("\n" + responseArray[1]);
-                                        ///tvUsers.setText(P1.name);
-
                                         // - Выводим в окно чата пользователя новое полученное сообщение
                                         String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
                                         Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
@@ -333,7 +296,6 @@ public class MainActivity extends AppCompatActivity{
                                         tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
                                         //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
                                         oldMessage=P1.message;
-
                                         //TimeUnit.MILLISECONDS.sleep(100);
 
                                     }
@@ -343,7 +305,7 @@ public class MainActivity extends AppCompatActivity{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tvMessage.setText("\n" + "Соединение с сервером чата отсутствует!");
+                                    tvMessage.append("\n" + "Соединение с сервером чата отсутствует!");
                                     //tvMessage.append("\n" + "Сервер недоступен!");
                                 }
                             });
@@ -391,7 +353,9 @@ public class MainActivity extends AppCompatActivity{
                                 @Override
                                 public void run() {
                                     etMessage.setText("");
+                                    //this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
                                     etMessage.requestFocus();
+
                                 }
                             });
                         } catch (Exception e) {
@@ -443,8 +407,8 @@ public class MainActivity extends AppCompatActivity{
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                tvMessage.setText("");
-                tvUsers.setText("");
+                tvMessage.setText("Вы отключились от сервера");
+                //tvUsers.setText("");
             }
         });
         Log.d(Connection.LOG_TAG, "Соединение закрыто");
