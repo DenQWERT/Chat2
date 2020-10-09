@@ -210,10 +210,17 @@ public class MainActivity extends AppCompatActivity{
             case R.id.skin_settings:
                 // - Действия при выборе пунка меню "Сменить скин"
                 //tvMessage.setBackgroundResource(R.drawable.fon1); // первый вариант
-                if (iColor%4==0)  tvMessage.setBackgroundColor(Color.YELLOW);
-                if (iColor%4==1)  tvMessage.setBackgroundColor(Color.LTGRAY);
-                if (iColor%4==2)  tvMessage.setBackgroundColor(Color.WHITE);
-                if (iColor%4==3)  tvMessage.setBackgroundResource(R.drawable.fonklen);
+                // Цвета взяты здеть. Первые две FF добавляем слева автоматом.
+                if (iColor%10==0)  tvMessage.setBackgroundColor(Color.YELLOW); // Желтый фон в поле сообщений
+                if (iColor%10==1)  tvMessage.setBackgroundColor(Color.LTGRAY); // Серый фон экрана
+                if (iColor%10==2)  tvMessage.setBackgroundColor(0xFF7FFFD4); // Бирюзовый фон экрана в поле сообщений
+                if (iColor%10==3)  tvMessage.setBackgroundColor(Color.WHITE); // Белый фон экрана в поле сообщений
+                if (iColor%10==4)  tvMessage.setBackgroundColor(0xFFFFCCFF); // Красноватый фон экрана в поле сообщений
+                if (iColor%10==5)  tvMessage.setBackgroundColor(0xFF99FF99); // Зеленоватый фон экрана в поле сообщений
+                if (iColor%10==6)  tvMessage.setBackgroundColor(0xFFFFCC66); // Оранжевый фон экрана в поле сообщений
+                if (iColor%10==7)  tvMessage.setBackgroundColor(0xFF00CCFF); // Голубоватый фон экрана в поле сообщений
+                if (iColor%10==8)  tvMessage.setBackgroundColor(0xFFFCC99); // Светло малиноватый фон экрана в поле сообщений
+                if (iColor%10==9)  tvMessage.setBackgroundResource(R.drawable.fonklen); // С кленовыми листьями
                 iColor++;
                 //tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
 
