@@ -2,7 +2,11 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -41,6 +45,7 @@ public class MainActivity extends AppCompatActivity{
     public DataInputStream in;
     public DataOutputStream out;
     private Connection mConnect = null;
+    private SoundPool soundNewMessage; // - Звук по приходу нового сообщения пользователю
 
     TextView tvServerChange;
     TextView tvUsers;
@@ -68,6 +73,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
         setContentView(R.layout.activity_main);
         tvMessage = findViewById(R.id.tvMessage);
         tvServerChange = findViewById(R.id.serverIpChangeWindow);
@@ -84,6 +90,23 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
+        //soundNewMessage = new SoundPool(4, AudioManager.STREAM_MUSIC, 100);
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundNewMessage = new SoundPool.Builder()
+                .setAudioAttributes(attributes)
+                .build();
+
+        //soundNewMessage.play(1, 1, 1, 0, 1, 1);
+        //int play(int soundID, float leftVolume, float rightVolume, int priority, int loop, float rate)
+        //soundID - идентификатор звука (который вернул load())
+        //leftVolume - уровень громкости для левого канала (от 0.0 до 1.0)
+        //rightVolume - уровень громкости для правого канала (от 0.0 до 1.0)
+        //priority - приоритет потока (0 - самый низкий)
+        //loop - количество повторов (0 - без повторов, (-1) - зациклен)
+        //rate - скорость воспроизведения (от 0.5 до 2.0)
 
         // - Скрываем экранную клавиатуру при запуске приложения :
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -294,6 +317,7 @@ public class MainActivity extends AppCompatActivity{
                                         wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                                         tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
                                         //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+
                                         oldMessage=P1.message;
                                         //TimeUnit.MILLISECONDS.sleep(100);
 
@@ -415,3 +439,4 @@ public class MainActivity extends AppCompatActivity{
 
 }
 
+// - Как установить звук в приложение - http://www.mobilab.ru/androiddev/androidsoundpoolmediaplayer.html
