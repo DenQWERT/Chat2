@@ -47,7 +47,7 @@
     <item
         android:id="@+id/skin_settings"
         android:orderInCategory="7"
-        android:title="Выбрать скин чата" />
+        android:title="! - Сменить фон чата чата" />
     <item
         android:id="@+id/get_users"
         android:orderInCategory="7"

@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity{
     Protocol P1 = new Protocol();
     int i01  = 0;
     String oldMessage="";
+    int iColor=0;
 
 
     @Override
@@ -144,8 +145,6 @@ public class MainActivity extends AppCompatActivity{
                 HOST = str;
                 tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\n(Новый адрес указывайте внизу ДО выбора данного пункта в меню). \n\nФормат - ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ");
                 return true;
-
-
             case R.id.server_change :
                 //  - Действия при выборе пунка меню "Изменить сервер"
                 InetAddress iaLocal;
@@ -211,7 +210,13 @@ public class MainActivity extends AppCompatActivity{
             case R.id.skin_settings:
                 // - Действия при выборе пунка меню "Сменить скин"
                 //tvMessage.setBackgroundResource(R.drawable.fon1); // первый вариант
-                tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
+                if (iColor%4==0)  tvMessage.setBackgroundColor(Color.YELLOW);
+                if (iColor%4==1)  tvMessage.setBackgroundColor(Color.LTGRAY);
+                if (iColor%4==2)  tvMessage.setBackgroundColor(Color.WHITE);
+                if (iColor%4==3)  tvMessage.setBackgroundResource(R.drawable.fonklen);
+                iColor++;
+                //tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
+
                 //tvMessage.setBackgroundColor(getResources().getColor(R.color.tvBackground)); // второй вариант
                 return true;
             case R.id.get_users:
