@@ -37,6 +37,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 
@@ -299,15 +300,19 @@ public class MainActivity extends AppCompatActivity{
                     while (!mConnect.getSocket().isClosed()) {
                         String response = null;
                         try {
-                            //System.out.println("До разбора P="  + P1.idUser + " " + P1.message.toString());
                             P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
                             i01++;
                             System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
+                            //Protocol P3 = new Protocol();
+                            //P3=P1;
 
 // ================================   Выводим клиенту сообщения на экран =======================================
                             //if (oldMessage.equals(P1.message)==false) {
-                            //if (oldMessage.toString()!=P1.message.toString()) {
-                                runOnUiThread(new Runnable() {
+                            //if (P1.message.toString()!="")&&(oldMessage.toString()!=P1.message.toString()) {
+                            final CountDownLatch latch = new CountDownLatch(1);
+
+                            runOnUiThread(new Runnable() {
+                                    // - ожидание конца выполнения метода - https://ru.stackoverflow.com/questions/555309/java-%D0%B4%D0%BE%D0%B6%D0%B4%D0%B0%D1%82%D1%8C%D1%81%D1%8F-%D0%B7%D0%B0%D0%B2%D0%B5%D1%80%D1%88%D0%B5%D0%BD%D0%B8%D1%8F-runnable
                                     @Override
                                     public void run() {
                                         // - Выбираем цвет начала сообщения в окне чата пользователя
@@ -332,9 +337,10 @@ public class MainActivity extends AppCompatActivity{
 
                                         oldMessage=P1.message;
                                         //TimeUnit.MILLISECONDS.sleep(100);
-
+                                        latch.countDown();
                                     }
                                 });
+                            latch.await();// - Ожидаем конца выполнения метода вывода текущей строки на экран чата пользователя
                             //}
                         } catch (IOException exception) {
                             runOnUiThread(new Runnable() {
