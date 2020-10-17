@@ -32,10 +32,18 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -65,24 +73,77 @@ public class MainActivity extends AppCompatActivity{
     // Таблица цветов - https://www.color-hex.com/
     String nameThisClient="NoName";
     int idThisClient=0;
-    Protocol P = new Protocol();
-    Protocol P1 = new Protocol();
+    Protocol P = new Protocol(); //  - Данные пользователя в формате протокола
+    Protocol P1 = new Protocol(); // - Данные текущего входящего сообщения в формате протокола
     int i01  = 0;
+    String newMessage=""; // - переменная для временной фиксации нового входящего сообщения
     String oldMessage="";
     int iColor=0;
+    static String oldTextString="Добро пожаловать в магический Чат!";
+    //String[] oldText;
+    static ArrayList<String> oldText = new ArrayList<>(); // - Здесь хранятся старые сообщения из окна сообщений которые отображаются после переворота экрана.
 
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //outState.putString("messages", oldTextString);
+        outState.putStringArrayList("messages", oldText);
+        outState.putString("OLDHOST", HOST);
+        //System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
+        System.out.println("Соханены следующие данные окна сообщений = " + oldText);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        //oldTextString = savedInstanceState.getString("messages");
+        oldText = savedInstanceState.getStringArrayList("messages");
+        HOST = savedInstanceState.getString("OLDHOST");
+        //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
+        System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
+        onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
+        // установки нового сокета если старый Сокет еще не разорван
+        // Возможно передать Сокет в ИнстантСтейт чтобы проверить разорвался он уже или еще нет.
+        // Либо в уже имеющийся ОпенКлик передать параметр сокращающий его функционал
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
         setContentView(R.layout.activity_main);
         tvMessage = findViewById(R.id.tvMessage);
+        tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
+
         tvServerChange = findViewById(R.id.serverIpChangeWindow);
         etMessage = findViewById(R.id.etMessage);
+        //oldText.add("Добро пожаловать в магический Чат!\n\nВыберите подключение к серверу чата в правом верхнем меню :");
         sendBtn = findViewById(R.id.sendBtn);
 
-        sendBtn.setEnabled(false);
+        ////sendBtn.setEnabled(false);
+
+        //tvMessage.setText(oldTextString);
+        // ========================================   Выводим сохраненные сообщения на экран =============================
+        tvMessage.setText("Добро пожаловать в магический Чат!\n\nВыберите подключение к серверу чата в правом верхнем меню :");
+        tvMessage.setTextColor(Color.RED);
+        int colorN=0;
+        for(String onestroka : oldText){
+            try {  P1.RazborProtocol(onestroka); }
+                catch (ParseException e) {  e.printStackTrace();   }
+
+            colorN = whaitColor(P1.idUser);
+            String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
+            Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
+            wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
+            Spannable wordTwo = new SpannableString(" " + P1.message);
+            wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
+
+            //tvMessage.append("\n" + onestroka);
+        }
+        //===================================================================================================================
 
         //tvMessage.setBackgroundResource(R.drawable.fonklen);
         sendBtn.setOnClickListener(new View.OnClickListener() {
@@ -128,20 +189,20 @@ public class MainActivity extends AppCompatActivity{
         switch(id){
             case R.id.connectLocal: // - Действия при выборе пунка меню "Соединяемся с локальным Андроид-Сервером 10.0.2.2"
                 HOST = "10.0.2.2";
-                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
                 onOpenClick();
                 return true;
             case R.id.connectOneServer: // - Действия при выборе пунка меню "Соединяемся с сервером 35.208.16.242"
                 HOST = "35.208.16.242";
-                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
                 onOpenClick();
                 return true;
             case R.id.connectVladLenServer: // - Действия при выборе пунка меню "Соединяемся с сервером 45.12.18.246"
                 HOST = "45.12.18.246";
-                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
                 onOpenClick();
                 return true;
-            case R.id.connectTwoServer: // - Действия при выборе пунка меню "Соединяемся с сервером 35.208.16.242"
+            case R.id.connectTwoServer: // - Действия при выборе пунка меню "Соединяемся с сервером XXX"
                 String str = etMessage.getText().toString();
                 HOST = str;
                 tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\n(Новый адрес указывайте внизу ДО выбора данного пункта в меню). \n\nФормат - ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ");
@@ -192,7 +253,7 @@ public class MainActivity extends AppCompatActivity{
                 // - Диалоговое окно. Честно стырено отсюда - https://randroid.ru/dev/android-studio-dialogovoe-okno-alertdialog
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Важное сообщение!")
-                        .setMessage("Закройте окно!")
+                        .setMessage("Закройте окно. Произошла аварийная разгерметизация!")
                         //.setIcon(R.drawable.server_change)
                         .setCancelable(false)
                         .setNegativeButton("ОК.  ВЫХОЖУ В КОСМОС!",
@@ -224,7 +285,6 @@ public class MainActivity extends AppCompatActivity{
                 if (iColor%10==9)  tvMessage.setBackgroundResource(R.drawable.fonklen); // С кленовыми листьями
                 iColor++;
                 //tvMessage.setBackgroundResource(R.drawable.fonklen); // второй вариант
-
                 //tvMessage.setBackgroundColor(getResources().getColor(R.color.tvBackground)); // второй вариант
                 return true;
             case R.id.get_users:
@@ -260,7 +320,7 @@ public class MainActivity extends AppCompatActivity{
         return super.onOptionsItemSelected(item);
     }
 //============================Метод установки соединения с сервером сообщений ===============================================================
-    private void onOpenClick(){
+    private void onOpenClick()  { // throws IOException, ClassNotFoundException
         // Создание подключения
         mConnect = new Connection(HOST, PORT);
         tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
@@ -278,29 +338,36 @@ public class MainActivity extends AppCompatActivity{
                     out = new DataOutputStream(mConnect.getSocket().getOutputStream());
                     //String userName = in.readUTF();
                     //String userName = Pack.unpaked(in.readUTF(),Sh);
-                    System.out.println(mConnect.getSocket());
+                    System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
                     P.RazborProtocol(Pack.unpaked(in.readUTF(),Sh)); // - Читаем строку, расшифровываем и разделяем на части.
 
                     idThisClient = P.idUser;
                     String userName =  P.message;
+
                     System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" +P.data + " Message=" + P.message);
                     final String str = userName;
+                    //tvMessage.append("\nВаше имя в чате - " + userName);
+
                     //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
                     // Разблокирование кнопок в UI потоке
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
                             tvMessage.setText("\n" + str);
                             sendBtn.setEnabled(true);
                             ///closeBtn.setEnabled(true);
                         }
                     });
 
+                    //tvMessage.setText(""); //  - Обнуляем сообщения на экране сообщений чата
+
                     while (!mConnect.getSocket().isClosed()) {
                         String response = null;
                         try {
-                            P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
+                            //P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
+                            newMessage = Pack.unpaked(in.readUTF(),Sh);
+                            P1.RazborProtocol(newMessage);
+                            oldText.add(newMessage);
                             i01++;
                             System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
                             //Protocol P3 = new Protocol();
@@ -317,13 +384,15 @@ public class MainActivity extends AppCompatActivity{
                                     public void run() {
                                         // - Выбираем цвет начала сообщения в окне чата пользователя
                                         int colorN = 0;
-                                        if (P1.idUser % 6 == 5) colorN = Color.RED;
+                                        /*if (P1.idUser % 6 == 5) colorN = Color.RED;
                                         if (P1.idUser % 6 == 4) colorN = Color.BLUE;
                                         if (P1.idUser % 6 == 3) colorN = Color.MAGENTA;
                                         if (P1.idUser % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
                                         if (P1.idUser % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
-                                        if (P1.idUser % 6 == 0) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+                                        if (P1.idUser % 6 == 0) colorN = 0xFF003300;*/// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
                                         // https://htmlweb.ru/html/table_colors.php
+
+                                        colorN = whaitColor(P1.idUser);
 
                                         // - Выводим в окно чата пользователя новое полученное сообщение
                                         String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
@@ -336,7 +405,15 @@ public class MainActivity extends AppCompatActivity{
                                         //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
 
                                         oldMessage=P1.message;
+                                        //oldTextString = oldTextString.concat("/n"+ time + " " + P1.name + " " + P1.message);
+                                        //oldText.add(time + " " + P1.name + " " + P1.message);
+                                        //System.out.println("oldTextString = " + oldTextString );
+                                        System.out.println("oldText = " + oldText );
                                         //TimeUnit.MILLISECONDS.sleep(100);
+
+                                        /*ObjectOutputStream toFile = null;
+                                            toFile = new ObjectOutputStream(new FileOutputStream(file));
+*/
                                         latch.countDown();
                                     }
                                 });
@@ -396,6 +473,7 @@ public class MainActivity extends AppCompatActivity{
                                     etMessage.setText("");
                                     //this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
                                     etMessage.requestFocus();
+                                    // - Скрываем экранную клавиатуру при запуске приложения :
 
                                 }
                             });
@@ -454,6 +532,20 @@ public class MainActivity extends AppCompatActivity{
         });
         Log.d(Connection.LOG_TAG, "Соединение закрыто");
     }
+
+// ====================  - Метод для определения в какой цвет красить клиента по его номеру id ================
+    int whaitColor(int id){  // - Всего шесть цветов клиентов в окне сообщений
+        int colorN = 0;
+        if (id % 6 == 5) colorN = Color.RED;
+        if (id % 6 == 4) colorN = Color.BLUE;
+        if (id % 6 == 3) colorN = Color.MAGENTA;
+        if (id % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
+        if (id % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
+        if (id % 6 == 0) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+        // https://htmlweb.ru/html/table_colors.php
+        return colorN;
+    }
+//============================================================================================================
 
 }
 
