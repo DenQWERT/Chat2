@@ -22,7 +22,9 @@
         android:paddingRight="5dp"
         android:scrollbars="vertical"
         android:textAlignment="viewStart"
+
         android:textSize="15sp"
+
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -71,6 +73,9 @@
             android:text="@string/sendBtn" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--    android:textAlignment="viewStart"  - Это было в ТекстВью Текст появлялся сверху-->
+<!--    android:gravity="bottom" - при этом текст появляется снизу и потом выравнивается по центру!!!-->
 
     <!-- android:paddingLeft= Это отступ текста в окне сообщений пользователя от левой стороны окна -->
     <!-- android:scrollbars = "vertical" - устанавливаем вертикальный скролинг -->

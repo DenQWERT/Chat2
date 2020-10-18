@@ -8,6 +8,8 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.Selection;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.method.ScrollingMovementMethod;
@@ -24,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.view.Menu;
 
@@ -79,6 +82,7 @@ public class MainActivity extends AppCompatActivity{
     String newMessage=""; // - переменная для временной фиксации нового входящего сообщения
     String oldMessage="";
     int iColor=0;
+    static int connectOn = 0; //  - признак наличия = 1 или отсутствия = 0 соединения без разрыва сокета
     static String oldTextString="Добро пожаловать в магический Чат!";
     //String[] oldText;
     static ArrayList<String> oldText = new ArrayList<>(); // - Здесь хранятся старые сообщения из окна сообщений которые отображаются после переворота экрана.
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity{
         //outState.putString("messages", oldTextString);
         outState.putStringArrayList("messages", oldText);
         outState.putString("OLDHOST", HOST);
+        connectOn = 3; outState.putInt("ConnectOn",connectOn); // - признак закрытия соединения без разрыва сокета
         //System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
     }
@@ -100,9 +105,12 @@ public class MainActivity extends AppCompatActivity{
         //oldTextString = savedInstanceState.getString("messages");
         oldText = savedInstanceState.getStringArrayList("messages");
         HOST = savedInstanceState.getString("OLDHOST");
+        // connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
+        connectOn = 3;
         //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
-        onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
+        sendBtn.setEnabled(true);
+        //onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
         // установки нового сокета если старый Сокет еще не разорван
         // Возможно передать Сокет в ИнстантСтейт чтобы проверить разорвался он уже или еще нет.
         // Либо в уже имеющийся ОпенКлик передать параметр сокращающий его функционал
@@ -111,7 +119,9 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
+        // !!!!!!!!!!!!!!!!!!!!! ПРИ ПОВОРОТЕ ЭКРАНА ПОИСХОДИТ РАЗРЫВ ЧАСТИЧНЫЙ СОЕДИНЕНИЯ !!!!!!!!!!!!!!!!!!!!!!
+        // Строкой ниже устанавливается запрет на поворот экрана.
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
         setContentView(R.layout.activity_main);
         tvMessage = findViewById(R.id.tvMessage);
         tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
@@ -125,13 +135,14 @@ public class MainActivity extends AppCompatActivity{
 
         //tvMessage.setText(oldTextString);
         // ========================================   Выводим сохраненные сообщения на экран =============================
-        tvMessage.setText("Добро пожаловать в магический Чат!\n\nВыберите подключение к серверу чата в правом верхнем меню :");
+        tvMessage.setText("");
+        tvMessage.append("Добро пожаловать в Чат!\n\nВыберите справа сверху в меню подключение к серверу вашего чата");
         tvMessage.setTextColor(Color.RED);
         int colorN=0;
         for(String onestroka : oldText){
             try {  P1.RazborProtocol(onestroka); }
                 catch (ParseException e) {  e.printStackTrace();   }
-
+//- Как скролить текст вниз много методов - http://www.ohandroid.com/textview-android-x43.html
             colorN = whaitColor(P1.idUser);
             String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
             Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
@@ -140,9 +151,15 @@ public class MainActivity extends AppCompatActivity{
             Spannable wordTwo = new SpannableString(" " + P1.message);
             wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
-
+            // Скролим текст вниз:
+            Editable editable = tvMessage.getEditableText(); Selection.setSelection(editable, editable.length());
             //tvMessage.append("\n" + onestroka);
         }
+        /*// http://www.ohandroid.com/textview-android.html - взято здесь, типа скролит текствью в конец
+            mTextStatus = (TextView) findViewById(R.id.TEXT_STATUS_ID);
+        mScrollView = (ScrollView) findViewById(R.id.SCROLLER_ID);
+        private void scrollToBottom() { mScrollView.post(new Runnable()
+            { public void run() { mScrollView.smoothScrollTo(0, mTextStatus.getBottom()); } }); }*/
         //===================================================================================================================
 
         //tvMessage.setBackgroundResource(R.drawable.fonklen);
@@ -189,7 +206,7 @@ public class MainActivity extends AppCompatActivity{
         switch(id){
             case R.id.connectLocal: // - Действия при выборе пунка меню "Соединяемся с локальным Андроид-Сервером 10.0.2.2"
                 HOST = "10.0.2.2";
-                //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                tvMessage.append("\n\nТекущй IP-адрес сервера изменен на \n" + HOST + ":" + PORT/* + "\n\nВыбирите в меню Подключиться к чату"*/);
                 onOpenClick();
                 return true;
             case R.id.connectOneServer: // - Действия при выборе пунка меню "Соединяемся с сервером 35.208.16.242"
@@ -205,7 +222,7 @@ public class MainActivity extends AppCompatActivity{
             case R.id.connectTwoServer: // - Действия при выборе пунка меню "Соединяемся с сервером XXX"
                 String str = etMessage.getText().toString();
                 HOST = str;
-                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\n(Новый адрес указывайте внизу ДО выбора данного пункта в меню). \n\nФормат - ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ");
+                tvMessage.append("\nТекущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\n(Новый адрес указывайте внизу ДО выбора данного пункта в меню). \n\nФормат - ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ");
                 return true;
             case R.id.server_change :
                 //  - Действия при выборе пунка меню "Изменить сервер"
@@ -228,7 +245,7 @@ public class MainActivity extends AppCompatActivity{
                 popupWindow.showAtLocation(tvMessage, Gravity.CENTER, 0, 0);
                 //popupWindow.setText("орорло");
                 tvMessage.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
-                tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\nВыберите новый IP-адрес и порт");
+                tvMessage.append("\n\nТекущй IP-адрес сервера\n" + HOST + ":" + PORT/* + "\nВыберите новый IP-адрес и порт"*/);
                 // dismiss the popup window when touched
                 popupView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -314,6 +331,7 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.viewMainSocket:
                 // - Действия при выборе пунка меню "Показать текущий Сокет"
+                tvMessage.append("\n Текущий Сокет = " + mConnect.getSocket().toString());
                 //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\nВыберите новый IP-адрес и порт");
                 return true;
         }
@@ -321,46 +339,56 @@ public class MainActivity extends AppCompatActivity{
     }
 //============================Метод установки соединения с сервером сообщений ===============================================================
     private void onOpenClick()  { // throws IOException, ClassNotFoundException
-        // Создание подключения
-        mConnect = new Connection(HOST, PORT);
-        tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
-        //etMessage.setMovementMethod(new ScrollingMovementMethod());
-        tvMessage.setTextColor(Color.RED); // - установим красный текст в окне сообщений
-
+        //if (connectOn == 1 ) {tvMessage.append("\n\n ConnectOn = 1 , Текущий Сокет = "/* + mConnect.getSocket().toString()*/);}
+        //if (connectOn == 3 ) {tvMessage.append("\n\n ConnectOn = 3 , Текущий Сокет = "/* + mConnect.getSocket().toString()*/);}
+        if (0 == 0) {
+            // Создание подключения
+            mConnect = new Connection(HOST, PORT);
+            //tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
+            //etMessage.setMovementMethod(new ScrollingMovementMethod());
+            tvMessage.setTextColor(Color.RED); // - установим красный текст в окне сообщений
+            //tvMessage.append("\n\n ConnectOn = 0 " + connectOn);
+            //connectOn = 1;
+        }
 
         // Открытие сокета в отдельном потоке
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mConnect.openConnection();
-                    in = new DataInputStream(mConnect.getSocket().getInputStream());
-                    out = new DataOutputStream(mConnect.getSocket().getOutputStream());
-                    //String userName = in.readUTF();
-                    //String userName = Pack.unpaked(in.readUTF(),Sh);
-                    System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
-                    P.RazborProtocol(Pack.unpaked(in.readUTF(),Sh)); // - Читаем строку, расшифровываем и разделяем на части.
+                    //if ((1 == 1) || (connectOn == 3)) {
+                        mConnect.openConnection();
+                        //connectOn = 1;
+                        //outState.putString("ConnectOn", connectOn);
 
-                    idThisClient = P.idUser;
-                    String userName =  P.message;
+                        in = new DataInputStream(mConnect.getSocket().getInputStream());
+                        out = new DataOutputStream(mConnect.getSocket().getOutputStream());
+                        //tvMessage.append("\n Текущий " + mConnect.getSocket().toString());
+                        //String userName = in.readUTF();
+                        //String userName = Pack.unpaked(in.readUTF(),Sh);
+                        System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
+                        P.RazborProtocol(Pack.unpaked(in.readUTF(), Sh)); // - Читаем строку, расшифровываем и разделяем на части.
 
-                    System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" +P.data + " Message=" + P.message);
-                    final String str = userName;
-                    //tvMessage.append("\nВаше имя в чате - " + userName);
+                        idThisClient = P.idUser;
+                        String userName = P.message;
 
-                    //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
-                    // Разблокирование кнопок в UI потоке
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvMessage.setText("\n" + str);
-                            sendBtn.setEnabled(true);
-                            ///closeBtn.setEnabled(true);
-                        }
-                    });
+                        System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" + P.data + " Message=" + P.message);
+                        final String str = userName;
+                        //tvMessage.append("\nВаше имя в чате - " + userName);
 
-                    //tvMessage.setText(""); //  - Обнуляем сообщения на экране сообщений чата
+                        //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
+                        // Разблокирование кнопок в UI потоке
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvMessage.setText("\n" + str);
+                                sendBtn.setEnabled(true);
+                                ///closeBtn.setEnabled(true);
+                            }
+                        });
 
+                        //tvMessage.setText(""); //  - Обнуляем сообщения на экране сообщений чата
+                    //}
                     while (!mConnect.getSocket().isClosed()) {
                         String response = null;
                         try {
@@ -403,6 +431,9 @@ public class MainActivity extends AppCompatActivity{
                                         wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                                         tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
                                         //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+
+                                        // Скролим текст вниз!!!
+                                        Editable editable = tvMessage.getEditableText(); Selection.setSelection(editable, editable.length());
 
                                         oldMessage=P1.message;
                                         //oldTextString = oldTextString.concat("/n"+ time + " " + P1.name + " " + P1.message);
@@ -520,6 +551,7 @@ public class MainActivity extends AppCompatActivity{
     {
         // Закрытие соединения
         mConnect.closeConnection();
+        connectOn = 0;
         // Блокирование кнопок
         sendBtn .setEnabled(false);
         ///closeBtn.setEnabled(false);
