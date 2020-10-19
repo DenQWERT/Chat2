@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity{
         connectOn = 3; outState.putInt("ConnectOn",connectOn); // - признак закрытия соединения без разрыва сокета
         //System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
+        onCloseClick();
     }
 
     @Override
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity{
         //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
         sendBtn.setEnabled(true);
-        //onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
+        onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
         // установки нового сокета если старый Сокет еще не разорван
         // Возможно передать Сокет в ИнстантСтейт чтобы проверить разорвался он уже или еще нет.
         // Либо в уже имеющийся ОпенКлик передать параметр сокращающий его функционал
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         // !!!!!!!!!!!!!!!!!!!!! ПРИ ПОВОРОТЕ ЭКРАНА ПОИСХОДИТ РАЗРЫВ ЧАСТИЧНЫЙ СОЕДИНЕНИЯ !!!!!!!!!!!!!!!!!!!!!!
         // Строкой ниже устанавливается запрет на поворот экрана.
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
         setContentView(R.layout.activity_main);
         tvMessage = findViewById(R.id.tvMessage);
         tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
@@ -230,7 +231,7 @@ public class MainActivity extends AppCompatActivity{
                 //   iaLocal = InetAddress.getLocalHost(); // - Получаем текущий адрес клиентского - приложения
 
                 // inflate the layout of the popup window
-                LayoutInflater inflater = (LayoutInflater)
+                /*LayoutInflater inflater = (LayoutInflater)
                         getSystemService(LAYOUT_INFLATER_SERVICE);
                 View popupView = inflater.inflate(R.layout.server_change, null);
 
@@ -243,17 +244,17 @@ public class MainActivity extends AppCompatActivity{
                 // show the popup window
                 // which view you pass in doesn't matter, it is only used for the window tolken
                 popupWindow.showAtLocation(tvMessage, Gravity.CENTER, 0, 0);
-                //popupWindow.setText("орорло");
+                //popupWindow.setText("орорло");*/
                 tvMessage.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
                 tvMessage.append("\n\nТекущй IP-адрес сервера\n" + HOST + ":" + PORT/* + "\nВыберите новый IP-адрес и порт"*/);
                 // dismiss the popup window when touched
-                popupView.setOnTouchListener(new View.OnTouchListener() {
+                /*popupView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
                         popupWindow.dismiss();
                         return true;
                     }
-                });
+                });*/
 
 
                 return true;
@@ -308,6 +309,7 @@ public class MainActivity extends AppCompatActivity{
                 // - Действия при выборе пунка меню "Показать кто сейчас в чате"
                 System.out.println("Запрашиваем список кто сейчас в чате");
                 SendTechMessagesClientToServer(11,"Сервер, покажи кто сейчас в чате");
+                tvMessage.append("\n-------------------------- ");
                 return true;
             case R.id.getMaxOLdMessages10:
                 // - Действия при выборе пунка меню "Показать последние 10 сообщений"
@@ -368,10 +370,11 @@ public class MainActivity extends AppCompatActivity{
                         //String userName = Pack.unpaked(in.readUTF(),Sh);
                         System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
                         P.RazborProtocol(Pack.unpaked(in.readUTF(), Sh)); // - Читаем строку, расшифровываем и разделяем на части.
-
+                        //P.name = P.name.replace(",","");// - убираем запятые из имени пользователя
                         idThisClient = P.idUser;
                         String userName = P.message;
 
+                        //userName = userName.replace(",","");// - убираем запятые из имени пользователя
                         System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" + P.data + " Message=" + P.message);
                         final String str = userName;
                         //tvMessage.append("\nВаше имя в чате - " + userName);
@@ -410,41 +413,88 @@ public class MainActivity extends AppCompatActivity{
                                     // - ожидание конца выполнения метода - https://ru.stackoverflow.com/questions/555309/java-%D0%B4%D0%BE%D0%B6%D0%B4%D0%B0%D1%82%D1%8C%D1%81%D1%8F-%D0%B7%D0%B0%D0%B2%D0%B5%D1%80%D1%88%D0%B5%D0%BD%D0%B8%D1%8F-runnable
                                     @Override
                                     public void run() {
-                                        // - Выбираем цвет начала сообщения в окне чата пользователя
-                                        int colorN = 0;
-                                        /*if (P1.idUser % 6 == 5) colorN = Color.RED;
-                                        if (P1.idUser % 6 == 4) colorN = Color.BLUE;
-                                        if (P1.idUser % 6 == 3) colorN = Color.MAGENTA;
-                                        if (P1.idUser % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
-                                        if (P1.idUser % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
-                                        if (P1.idUser % 6 == 0) colorN = 0xFF003300;*/// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
-                                        // https://htmlweb.ru/html/table_colors.php
+                                        int colorN = 0; // - Выбираем цвет начала сообщения в окне чата пользователя по умолчанию
+                                        switch (P1.type) { //=== -  Разборщик сообщений сервера ===================================
+                                            case 14: // - Выдаем клиенту список всех кто был в чате
+                                                /*String[] subStr;
+                                                String delimeter = ", "; // Разделитель
+                                                subStr = str.split(delimeter); // Разделения строки str с помощью метода split()
+                                                // Вывод результата на экран
+                                                for(int i = 0; i < subStr.length; i++) {
+                                                    System.out.println(subStr[i]);
+                                                }*/
+                                                String strktobyl = P1.message;
+                                                String Name = "NoName";
+                                                String id = "NoId";
+                                                colorN = Color.BLUE;
+                                                tvMessage.append("\n-------------------------- ");
+                                                tvMessage.append("\nСписок всех кто был в чате: ");
 
-                                        colorN = whaitColor(P1.idUser);
+                                                while (strktobyl.indexOf("-#-") >= 0){
+                                                    //System.out.println("strktobyl 1 = " + strktobyl);
+                                                    //System.out.println("strktobyl.indexOf(\"-#-\") = " + strktobyl.indexOf("-#-"));
 
-                                        // - Выводим в окно чата пользователя новое полученное сообщение
-                                        String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
-                                        Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
-                                        wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                        tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
-                                        Spannable wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
-                                        wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                        tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
-                                        //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+                                                    id = strktobyl.substring( strktobyl.indexOf("-#-")-3, strktobyl.indexOf("-#-"));
+                                                    id = id.replace(" ","");
+                                                    //System.out.println("id = " + id);
 
-                                        // Скролим текст вниз!!!
-                                        Editable editable = tvMessage.getEditableText(); Selection.setSelection(editable, editable.length());
+                                                    Name = strktobyl.substring(strktobyl.indexOf("-#-")+3,strktobyl.indexOf(","));
+                                                    //System.out.println("Name = " + Name);
 
-                                        oldMessage=P1.message;
-                                        //oldTextString = oldTextString.concat("/n"+ time + " " + P1.name + " " + P1.message);
-                                        //oldText.add(time + " " + P1.name + " " + P1.message);
-                                        //System.out.println("oldTextString = " + oldTextString );
-                                        System.out.println("oldText = " + oldText );
-                                        //TimeUnit.MILLISECONDS.sleep(100);
+                                                    colorN = whaitColor(Integer.parseInt(id));
 
-                                        /*ObjectOutputStream toFile = null;
-                                            toFile = new ObjectOutputStream(new FileOutputStream(file));
+                                                    strktobyl = strktobyl.substring(strktobyl.indexOf("-#-")+3, strktobyl.length());
+                                                    strktobyl = strktobyl.substring(strktobyl.indexOf(",")+1, strktobyl.length());
+                                                    //System.out.println("strktobyl 2 = " + strktobyl);
+
+                                                    Spannable wordOne = new SpannableString(/*" " + id + "-" + */" " + Name);
+                                                    wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                    tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
+
+                                                    if ((strktobyl.indexOf("-#-")>=0)) { // - ставим точки и зяпятые между пользователями в списке
+                                                        tvMessage.append(",");}
+                                                    else {tvMessage.append("."); }
+                                                };
+
+                                                break;
+                                            case 2: case 3: case 11: case 13:
+                                                // - Выбираем цвет начала сообщения в окне чата пользователя
+                                                /*if (P1.idUser % 6 == 5) colorN = Color.RED;
+                                                if (P1.idUser % 6 == 4) colorN = Color.BLUE;
+                                                if (P1.idUser % 6 == 3) colorN = Color.MAGENTA;
+                                                if (P1.idUser % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
+                                                if (P1.idUser % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
+                                                if (P1.idUser % 6 == 0) colorN = 0xFF003300;*/// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+                                                // https://htmlweb.ru/html/table_colors.php
+
+                                                colorN = whaitColor(P1.idUser);
+
+                                                // - Выводим в окно чата пользователя новое полученное сообщение
+                                                String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
+                                                Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
+                                                wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
+                                                Spannable wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
+                                                wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
+                                                //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+
+                                                // Скролим текст вниз!!!
+                                                Editable editable = tvMessage.getEditableText();
+                                                Selection.setSelection(editable, editable.length());
+
+                                                oldMessage = P1.message;
+                                                //oldTextString = oldTextString.concat("/n"+ time + " " + P1.name + " " + P1.message);
+                                                //oldText.add(time + " " + P1.name + " " + P1.message);
+                                                //System.out.println("oldTextString = " + oldTextString );
+                                                System.out.println("oldText = " + oldText);
+                                                //TimeUnit.MILLISECONDS.sleep(100);
+
+                                                /*ObjectOutputStream toFile = null;
+                                                    toFile = new ObjectOutputStream(new FileOutputStream(file));
 */
+                                                break;
+                                        }
                                         latch.countDown();
                                     }
                                 });
@@ -489,6 +539,7 @@ public class MainActivity extends AppCompatActivity{
                 public void run() {
 
                     String str = etMessage.getText().toString();
+                    str = str.replace("/",""); // - убираем возможный слэш из имени пользователя.
                     if (str.length()>0) {
                         nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
                         try {

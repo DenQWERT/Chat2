@@ -63,6 +63,10 @@ public class Protocol {
         if (protocol.length>3)  { // - Получаем имя клиента написавшего сообщения
             this.name     = protocol[3];
             //System.out.println("Имя = " + this.name);
+            this.name = this.name.replace(",",""); // - убираем возможную запятую из имени пользователя.
+            this.name = this.name.replace(".",""); // - убираем возможную точку из имени пользователя.
+            this.name = this.name.replace("/",""); // - убираем возможный слэш из имени пользователя.
+            this.name = this.name.replace("#",""); // - убираем возможную решетку из имени пользователя.
         }
         if (protocol.length>4)  { // - Получаем цвет клиента написавшего сообщение
             this.color    = Integer.parseInt(protocol[4]);
