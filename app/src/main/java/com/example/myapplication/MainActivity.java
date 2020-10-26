@@ -69,9 +69,8 @@ public class MainActivity extends AppCompatActivity{
 
     static int Sh = 2;  // Sh = 2 - шифруем  Sh=0 не шифруем
     //private String HOST = "10.0.2.2";
-    //private String HOST = "35.235.241.19";
-    private String HOST = "35.208.16.242";
-    //private String HOST = "109.252.5.143";
+    private String HOST = "45.12.18.246"; // Чат на сервере VL
+    //private String HOST = "35.208.16.242";
     private int PORT = 8188;
     // Таблица цветов - https://www.color-hex.com/
     String nameThisClient="NoName";
@@ -82,7 +81,7 @@ public class MainActivity extends AppCompatActivity{
     String newMessage=""; // - переменная для временной фиксации нового входящего сообщения
     String oldMessage="";
     int iColor=0;
-    static int connectOn = 0; //  - признак наличия = 1 или отсутствия = 0 соединения без разрыва сокета
+    static int connectOn = 0; //  - 0 = соединение устанавливается впервые , 1 = соединение устанавливается повторно
     static String oldTextString="Добро пожаловать в магический Чат!";
     //String[] oldText;
     static ArrayList<String> oldText = new ArrayList<>(); // - Здесь хранятся старые сообщения из окна сообщений которые отображаются после переворота экрана.
@@ -93,9 +92,12 @@ public class MainActivity extends AppCompatActivity{
         super.onSaveInstanceState(outState);
         //outState.putString("messages", oldTextString);
         outState.putStringArrayList("messages", oldText);
+        //outState.put("ColorText", tvMessage.getTextColors());
+
         outState.putString("OLDHOST", HOST);
-        connectOn = 3; outState.putInt("ConnectOn",connectOn); // - признак закрытия соединения без разрыва сокета
-        //System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
+        outState.putString("NameThisClient", nameThisClient);
+        connectOn = 1; outState.putInt("ConnectOn",connectOn); // - признак = 1 для указания на повторную установку соединения в дальнейшем
+        // System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
         onCloseClick();
     }
@@ -106,12 +108,13 @@ public class MainActivity extends AppCompatActivity{
         //oldTextString = savedInstanceState.getString("messages");
         oldText = savedInstanceState.getStringArrayList("messages");
         HOST = savedInstanceState.getString("OLDHOST");
-        // connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
-        connectOn = 3;
+        nameThisClient = savedInstanceState.getString("NameThisClient");
+        connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
+        // connectOn = 3;
         //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
         sendBtn.setEnabled(true);
-        onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
+        ///onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
         // установки нового сокета если старый Сокет еще не разорван
         // Возможно передать Сокет в ИнстантСтейт чтобы проверить разорвался он уже или еще нет.
         // Либо в уже имеющийся ОпенКлик передать параметр сокращающий его функционал
@@ -136,14 +139,15 @@ public class MainActivity extends AppCompatActivity{
 
         //tvMessage.setText(oldTextString);
         // ========================================   Выводим сохраненные сообщения на экран =============================
-        tvMessage.setText("");
+        ////tvMessage.setText("");
+        onOpenClick();
         tvMessage.append("Добро пожаловать в Чат!\n\nВыберите справа сверху в меню подключение к серверу вашего чата");
         tvMessage.setTextColor(Color.RED);
         int colorN=0;
         for(String onestroka : oldText){
             try {  P1.RazborProtocol(onestroka); }
                 catch (ParseException e) {  e.printStackTrace();   }
-//- Как скролить текст вниз много методов - http://www.ohandroid.com/textview-android-x43.html
+            //- Как скролить текст вниз много методов - http://www.ohandroid.com/textview-android-x43.html
             colorN = whaitColor(P1.idUser);
             String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
             Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
@@ -208,22 +212,27 @@ public class MainActivity extends AppCompatActivity{
             case R.id.connectLocal: // - Действия при выборе пунка меню "Соединяемся с локальным Андроид-Сервером 10.0.2.2"
                 HOST = "10.0.2.2";
                 tvMessage.append("\n\nТекущй IP-адрес сервера изменен на \n" + HOST + ":" + PORT/* + "\n\nВыбирите в меню Подключиться к чату"*/);
+                connectOn = 0;
                 onOpenClick();
                 return true;
             case R.id.connectOneServer: // - Действия при выборе пунка меню "Соединяемся с сервером 35.208.16.242"
                 HOST = "35.208.16.242";
                 //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                connectOn = 0;
                 onOpenClick();
                 return true;
             case R.id.connectVladLenServer: // - Действия при выборе пунка меню "Соединяемся с сервером 45.12.18.246"
                 HOST = "45.12.18.246";
                 //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\nВыбирите в меню Подключиться к чату");
+                connectOn = 0;
                 onOpenClick();
                 return true;
             case R.id.connectTwoServer: // - Действия при выборе пунка меню "Соединяемся с сервером XXX"
                 String str = etMessage.getText().toString();
                 HOST = str;
                 tvMessage.append("\nТекущй IP-адрес сервера\n" + HOST + ":" + PORT + "\n\n(Новый адрес указывайте внизу ДО выбора данного пункта в меню). \n\nФормат - ЧЧЧ.ЧЧЧ.ЧЧЧ.ЧЧЧ");
+                connectOn = 0;
+                onOpenClick();
                 return true;
             case R.id.server_change :
                 //  - Действия при выборе пунка меню "Изменить сервер"
@@ -262,6 +271,7 @@ public class MainActivity extends AppCompatActivity{
                 onOpenClick();
                 return true;
             case R.id.server_disconnect: // - Действия при выборе пунка меню "Отключиться от сервера"
+                connectOn = 0;
                 onCloseClick();
                 return true;
             case R.id.users_subscribe_settings: // - Действия при выборе пунка меню "Подписаться на пользователей"
@@ -322,7 +332,7 @@ public class MainActivity extends AppCompatActivity{
                 SendTechMessagesClientToServer(13,"20");
                 return true;
             case R.id.getMaxOLdMessages50:
-                // - Действия при выборе пунка меню "Показать последние 40 сообщений"
+                // - Действия при выборе пунка меню "Показать последние 50 сообщений"
                 tvMessage.append("\n---------------------------------\nПоследние 50 сообщений чата:");
                 SendTechMessagesClientToServer(13,"50");
                 return true;
@@ -381,15 +391,52 @@ public class MainActivity extends AppCompatActivity{
 
                         //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
                         // Разблокирование кнопок в UI потоке
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tvMessage.setText("\n" + str);
-                                sendBtn.setEnabled(true);
-                                ///closeBtn.setEnabled(true);
-                            }
-                        });
-
+                        if (connectOn == 0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvMessage.setText("\n" + str); // - 01 - Тип сообщения /"Вас приветствует верся чата ..."
+                                    sendBtn.setEnabled(true);
+                                    ///closeBtn.setEnabled(true);
+                                }
+                            });
+                        }
+                        //=======================   Запрос на имя от сервера =====================================
+                        newMessage = Pack.unpaked(in.readUTF(),Sh); // - 01 - тип сообщеия / "Введите свое имя..."
+                        P1.RazborProtocol(newMessage);
+                        if (connectOn == 0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvMessage.append("\n" + P1.message);
+                                }
+                            });
+                        }
+                        //------------------------- Отправляем серверу наше имя --------------------------------------------
+                        if (connectOn == 1) {
+                            Date data = new Date();
+                            data.getTime();
+                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + nameThisClient + "/41", Sh));
+                        }
+                        if (connectOn == 0) {
+                            onSendClick();
+                            /*nameThisClient =
+                            Date data = new Date();
+                            data.getTime();
+                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + nameThisClient + "/41", Sh));
+                            */
+                        }
+                        //=======================   Сервер отвечает - ваше имя такое то =====================================
+                        newMessage = Pack.unpaked(in.readUTF(),Sh); // - 01 - тип сообщеия / "Введите свое имя..."
+                        P1.RazborProtocol(newMessage);
+                        if (connectOn == 0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tvMessage.append("\n" + P1.message + "Тут ваше имя от сервера");
+                                }
+                            });
+                        }
                         //tvMessage.setText(""); //  - Обнуляем сообщения на экране сообщений чата
                     //}
                     while (!mConnect.getSocket().isClosed()) {
@@ -398,7 +445,7 @@ public class MainActivity extends AppCompatActivity{
                             //P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
                             newMessage = Pack.unpaked(in.readUTF(),Sh);
                             P1.RazborProtocol(newMessage);
-                            oldText.add(newMessage);
+                            if (P1.type!=14) oldText.add(newMessage);
                             i01++;
                             System.out.println(i01 + "= i01 После разбора P=" + P1.idUser + " " + P1.message.toString());
                             //Protocol P3 = new Protocol();
@@ -429,7 +476,7 @@ public class MainActivity extends AppCompatActivity{
                                                 colorN = Color.BLUE;
                                                 tvMessage.append("\n-------------------------- ");
                                                 tvMessage.append("\nСписок всех кто был в чате: ");
-
+                                                String tempstring = "";
                                                 while (strktobyl.indexOf("-#-") >= 0){
                                                     //System.out.println("strktobyl 1 = " + strktobyl);
                                                     //System.out.println("strktobyl.indexOf(\"-#-\") = " + strktobyl.indexOf("-#-"));
@@ -450,11 +497,14 @@ public class MainActivity extends AppCompatActivity{
                                                     Spannable wordOne = new SpannableString(/*" " + id + "-" + */" " + Name);
                                                     wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                                                     tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
-
+                                                    tempstring=tempstring + " " + Name;
                                                     if ((strktobyl.indexOf("-#-")>=0)) { // - ставим точки и зяпятые между пользователями в списке
-                                                        tvMessage.append(",");}
-                                                    else {tvMessage.append("."); }
+                                                        tvMessage.append(",");
+                                                        tempstring = tempstring + ",";
+                                                    }
+                                                    else {tvMessage.append("."); tempstring = tempstring + ".";}
                                                 };
+                                                //oldText.add(tempstring);
 
                                                 break;
                                             case 2: case 3: case 11: case 13:
@@ -541,7 +591,7 @@ public class MainActivity extends AppCompatActivity{
                     String str = etMessage.getText().toString();
                     str = str.replace("/",""); // - убираем возможный слэш из имени пользователя.
                     if (str.length()>0) {
-                        nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
+                        if ((connectOn==0)&&(nameThisClient=="NoName")) {nameThisClient = str;}  // - Получаем с окна имя клиента при регистрации
                         try {
                             //out.writeUTF(str);
                             Date data = new Date();
@@ -602,7 +652,7 @@ public class MainActivity extends AppCompatActivity{
     {
         // Закрытие соединения
         mConnect.closeConnection();
-        connectOn = 0;
+        // connectOn = 0;
         // Блокирование кнопок
         sendBtn .setEnabled(false);
         ///closeBtn.setEnabled(false);
