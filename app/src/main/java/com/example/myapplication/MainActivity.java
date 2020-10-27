@@ -68,8 +68,8 @@ public class MainActivity extends AppCompatActivity{
     ///Button closeBtn;
 
     static int Sh = 2;  // Sh = 2 - шифруем  Sh=0 не шифруем
-    //private String HOST = "10.0.2.2";
-    private String HOST = "45.12.18.246"; // Чат на сервере VL
+    private String HOST = "10.0.2.2";  // Отладочный чат Андроид Студии
+    //private String HOST = "45.12.18.246"; // Чат на сервере VL
     //private String HOST = "35.208.16.242";
     private int PORT = 8188;
     // Таблица цветов - https://www.color-hex.com/
@@ -89,13 +89,14 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+         super.onSaveInstanceState(outState);
         //outState.putString("messages", oldTextString);
         outState.putStringArrayList("messages", oldText);
         //outState.put("ColorText", tvMessage.getTextColors());
 
         outState.putString("OLDHOST", HOST);
         outState.putString("NameThisClient", nameThisClient);
+        System.out.println("Сохранено имя по закрытию сессии nameThisClient = " + nameThisClient);
         connectOn = 1; outState.putInt("ConnectOn",connectOn); // - признак = 1 для указания на повторную установку соединения в дальнейшем
         // System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
@@ -104,12 +105,21 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        //oldTextString = savedInstanceState.getString("messages");
-        oldText = savedInstanceState.getStringArrayList("messages");
-        HOST = savedInstanceState.getString("OLDHOST");
+        //   W/IInputConnectionWrapper: finishComposingText on inactive InputConnection
         nameThisClient = savedInstanceState.getString("NameThisClient");
+        System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
+        HOST = savedInstanceState.getString("OLDHOST");
+        oldText = savedInstanceState.getStringArrayList("messages");
         connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
+
+        super.onRestoreInstanceState(savedInstanceState);
+
+        //oldTextString = savedInstanceState.getString("messages");
+        //oldText = savedInstanceState.getStringArrayList("messages");
+        //HOST = savedInstanceState.getString("OLDHOST");
+        //nameThisClient = savedInstanceState.getString("NameThisClient");
+        System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
+        //connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
         // connectOn = 3;
         //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
@@ -141,7 +151,7 @@ public class MainActivity extends AppCompatActivity{
         // ========================================   Выводим сохраненные сообщения на экран =============================
         ////tvMessage.setText("");
         onOpenClick();
-        tvMessage.append("Добро пожаловать в Чат!\n\nВыберите справа сверху в меню подключение к серверу вашего чата");
+        tvMessage.append("Добро пожаловать в Чат на сервере" + HOST + "!\n" /*\nВыберите справа сверху в меню подключение к серверу вашего чата"*/);
         tvMessage.setTextColor(Color.RED);
         int colorN=0;
         for(String onestroka : oldText){
@@ -264,10 +274,9 @@ public class MainActivity extends AppCompatActivity{
                         return true;
                     }
                 });*/
-
-
                 return true;
             case R.id.server_connect: // - Действия при выборе пунка меню "Соединиться с сервером"
+                connectOn = 0;
                 onOpenClick();
                 return true;
             case R.id.server_disconnect: // - Действия при выборе пунка меню "Отключиться от сервера"
@@ -388,7 +397,7 @@ public class MainActivity extends AppCompatActivity{
                         System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" + P.data + " Message=" + P.message);
                         final String str = userName;
                         //tvMessage.append("\nВаше имя в чате - " + userName);
-
+                        sendBtn.setEnabled(true);
                         //tvMessage.append("\n" + "Установлено соединение c чатом на сервере " + HOST);
                         // Разблокирование кнопок в UI потоке
                         if (connectOn == 0) {
@@ -396,7 +405,7 @@ public class MainActivity extends AppCompatActivity{
                                 @Override
                                 public void run() {
                                     tvMessage.setText("\n" + str); // - 01 - Тип сообщения /"Вас приветствует верся чата ..."
-                                    sendBtn.setEnabled(true);
+                                    //sendBtn.setEnabled(true);
                                     ///closeBtn.setEnabled(true);
                                 }
                             });
@@ -415,8 +424,9 @@ public class MainActivity extends AppCompatActivity{
                         //------------------------- Отправляем серверу наше имя --------------------------------------------
                         if (connectOn == 1) {
                             Date data = new Date();
-                            data.getTime();
-                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + nameThisClient + "/41", Sh));
+                            data.getTime(); // - Отправляем северу запрос по Типу 15 - запрос на повторное соединение.
+                            System.out.println("connectOn = " + connectOn + "  /  nameThisClient = " + nameThisClient + "  /  idThisClient = " + idThisClient + " / P.name = " + P.name);
+                            out.writeUTF(Pack.paked("15/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + nameThisClient + "/41", Sh));
                         }
                         if (connectOn == 0) {
                             onSendClick();
@@ -537,7 +547,7 @@ public class MainActivity extends AppCompatActivity{
                                                 //oldTextString = oldTextString.concat("/n"+ time + " " + P1.name + " " + P1.message);
                                                 //oldText.add(time + " " + P1.name + " " + P1.message);
                                                 //System.out.println("oldTextString = " + oldTextString );
-                                                System.out.println("oldText = " + oldText);
+                                                //// System.out.println("oldText = " + oldText);
                                                 //TimeUnit.MILLISECONDS.sleep(100);
 
                                                 /*ObjectOutputStream toFile = null;
@@ -554,7 +564,8 @@ public class MainActivity extends AppCompatActivity{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tvMessage.append("\n" + "Соединение с сервером чата отсутствует!");
+                                    tvMessage.append("\n" + "Соединение с сервером чата " + HOST + " отсутствует!");
+                                    //System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
                                     //tvMessage.append("\n" + "Сервер недоступен!");
                                 }
                             });
@@ -654,7 +665,7 @@ public class MainActivity extends AppCompatActivity{
         mConnect.closeConnection();
         // connectOn = 0;
         // Блокирование кнопок
-        sendBtn .setEnabled(false);
+        sendBtn.setEnabled(false);
         ///closeBtn.setEnabled(false);
         runOnUiThread(new Runnable() {
             @Override
