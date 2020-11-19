@@ -16,6 +16,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -53,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class MainActivity extends AppCompatActivity{
-    public Socket socket;
+    //public Socket socket;
     public DataInputStream in;
     public DataOutputStream out;
     private Connection mConnect = null;
@@ -68,8 +69,8 @@ public class MainActivity extends AppCompatActivity{
     ///Button closeBtn;
 
     static int Sh = 2;  // Sh = 2 - шифруем  Sh=0 не шифруем
-    private String HOST = "10.0.2.2";  // Отладочный чат Андроид Студии
-    //private String HOST = "45.12.18.246"; // Чат на сервере VL
+    //private String HOST = "10.0.2.2";  // Отладочный чат Андроид Студии
+    private String HOST = "45.12.18.246"; // Чат на сервере VL
     //private String HOST = "35.208.16.242";
     private int PORT = 8188;
     // Таблица цветов - https://www.color-hex.com/
@@ -84,15 +85,22 @@ public class MainActivity extends AppCompatActivity{
     static int connectOn = 0; //  - 0 = соединение устанавливается впервые , 1 = соединение устанавливается повторно
     static String oldTextString="Добро пожаловать в магический Чат!";
     //String[] oldText;
+    int errorConnectionBlackEcran = 0;
     static ArrayList<String> oldText = new ArrayList<>(); // - Здесь хранятся старые сообщения из окна сообщений которые отображаются после переворота экрана.
 
+    @Override    protected void onPause()   {      super.onPause();    }
+    @Override    protected void onStop()    {      super.onStop();     }
+    @Override    protected void onDestroy() {      super.onDestroy();  }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        //SendTechMessagesClientToServer(4,"Сервер, я " + nameThisClient + " самостоятельно отключаюсь от тебя!");
          super.onSaveInstanceState(outState);
         //outState.putString("messages", oldTextString);
         outState.putStringArrayList("messages", oldText);
         //outState.put("ColorText", tvMessage.getTextColors());
+
+        //outState.putString("mConnect", mConnect);
 
         outState.putString("OLDHOST", HOST);
         outState.putString("NameThisClient", nameThisClient);
@@ -100,12 +108,12 @@ public class MainActivity extends AppCompatActivity{
         connectOn = 1; outState.putInt("ConnectOn",connectOn); // - признак = 1 для указания на повторную установку соединения в дальнейшем
         // System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
-        onCloseClick();
+
+        onCloseClick(); // - !!!!!!!!!!!!!!!!!  Здесь причина.
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        //   W/IInputConnectionWrapper: finishComposingText on inactive InputConnection
         nameThisClient = savedInstanceState.getString("NameThisClient");
         System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
         HOST = savedInstanceState.getString("OLDHOST");
@@ -114,20 +122,11 @@ public class MainActivity extends AppCompatActivity{
 
         super.onRestoreInstanceState(savedInstanceState);
 
-        //oldTextString = savedInstanceState.getString("messages");
-        //oldText = savedInstanceState.getStringArrayList("messages");
-        //HOST = savedInstanceState.getString("OLDHOST");
-        //nameThisClient = savedInstanceState.getString("NameThisClient");
         System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
-        //connectOn = savedInstanceState.getInt ("ConnectOn",connectOn);
-        // connectOn = 3;
-        //System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldTextString);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
         sendBtn.setEnabled(true);
-        ///onOpenClick(); // -  Сюда miniOpenClick надо сделать без повторной авторизации на сервере и
-        // установки нового сокета если старый Сокет еще не разорван
-        // Возможно передать Сокет в ИнстантСтейт чтобы проверить разорвался он уже или еще нет.
-        // Либо в уже имеющийся ОпенКлик передать параметр сокращающий его функционал
+
+
     }
 
     @Override
@@ -150,7 +149,9 @@ public class MainActivity extends AppCompatActivity{
         //tvMessage.setText(oldTextString);
         // ========================================   Выводим сохраненные сообщения на экран =============================
         ////tvMessage.setText("");
-        onOpenClick();
+
+        if (mConnect == null) onOpenClick();
+
         tvMessage.append("Добро пожаловать в Чат на сервере" + HOST + "!\n" /*\nВыберите справа сверху в меню подключение к серверу вашего чата"*/);
         tvMessage.setTextColor(Color.RED);
         int colorN=0;
@@ -352,7 +353,9 @@ public class MainActivity extends AppCompatActivity{
                 return true;
             case R.id.viewMainSocket:
                 // - Действия при выборе пунка меню "Показать текущий Сокет"
-                tvMessage.append("\n Текущий Сокет = " + mConnect.getSocket().toString());
+                tvMessage.append("\n Текущий Сокет mConnect = " + mConnect);
+                //tvMessage.append("\n Текущий Сокет socket = " + socket);
+                tvMessage.append("\n Текущий Сокет - mConnect.getSocket().toString() = " + mConnect.getSocket().toString());
                 //tvMessage.setText("Текущй IP-адрес сервера\n" + HOST + ":" + PORT + "\nВыберите новый IP-адрес и порт");
                 return true;
         }
@@ -363,8 +366,16 @@ public class MainActivity extends AppCompatActivity{
         //if (connectOn == 1 ) {tvMessage.append("\n\n ConnectOn = 1 , Текущий Сокет = "/* + mConnect.getSocket().toString()*/);}
         //if (connectOn == 3 ) {tvMessage.append("\n\n ConnectOn = 3 , Текущий Сокет = "/* + mConnect.getSocket().toString()*/);}
         if (0 == 0) {
+            System.out.println("До открытия ============= mConnect = " + mConnect);
+            if (mConnect != null)
+                System.out.println("До открытия =========== mConnect.getSocket().toString() = " + mConnect.getSocket().toString());
             // Создание подключения
-            mConnect = new Connection(HOST, PORT);
+            if (mConnect == null)
+                mConnect = new Connection(HOST, PORT);
+
+            System.out.println("После открытия ============= mConnect = " + mConnect);
+            /// if (mConnect != null) { System.out.println("После открытия  =========== mConnect.getSocket().toString() = " + mConnect.getSocket().toString());}
+
             //tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
             //etMessage.setMovementMethod(new ScrollingMovementMethod());
             tvMessage.setTextColor(Color.RED); // - установим красный текст в окне сообщений
@@ -384,6 +395,7 @@ public class MainActivity extends AppCompatActivity{
 
                         in = new DataInputStream(mConnect.getSocket().getInputStream());
                         out = new DataOutputStream(mConnect.getSocket().getOutputStream());
+
                         //tvMessage.append("\n Текущий " + mConnect.getSocket().toString());
                         //String userName = in.readUTF();
                         //String userName = Pack.unpaked(in.readUTF(),Sh);
@@ -392,6 +404,7 @@ public class MainActivity extends AppCompatActivity{
                         //P.name = P.name.replace(",","");// - убираем запятые из имени пользователя
                         idThisClient = P.idUser;
                         String userName = P.message;
+
 
                         //userName = userName.replace(",","");// - убираем запятые из имени пользователя
                         System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" + P.data + " Message=" + P.message);
@@ -452,6 +465,7 @@ public class MainActivity extends AppCompatActivity{
                     while (!mConnect.getSocket().isClosed()) {
                         String response = null;
                         try {
+                            errorConnectionBlackEcran = 0;
                             //P1.RazborProtocol(Pack.unpaked(in.readUTF(),Sh));
                             newMessage = Pack.unpaked(in.readUTF(),Sh);
                             P1.RazborProtocol(newMessage);
@@ -564,17 +578,34 @@ public class MainActivity extends AppCompatActivity{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tvMessage.append("\n" + "Соединение с сервером чата " + HOST + " отсутствует!");
-                                    //System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
-                                    //tvMessage.append("\n" + "Сервер недоступен!");
+                                    if (errorConnectionBlackEcran == 1) { // ==1 Значит второй проход и соединение реально отсутствует
+                                        tvMessage.append("\n" + "Соединение с сервером чата " + HOST + " отсутствует!");
+                                        //System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
+                                        //tvMessage.append("\n" + "Сервер недоступен!");
+                                    }
+                                    if (errorConnectionBlackEcran == 0) { // ==0 Значит это первый проход. и делаем попытку восстановить соединение.
+                                        errorConnectionBlackEcran = 1;
+                                        System.out.println("Соединение с сервером пробуем открыть второй раз");
+                                        //if (mConnect != null)
+
+                                        // -- тут установить ограничение на открытие повторного сокета после переврота с промежуточным сообщением в перевороте
+                                        // -- чтобы пользователи не раздваивались
+                                        // - - определение кнопки нажатия Пауэр - https://www.ohandroid.com/27668.html
+                                        // - if(keyPressed==KeyEvent.KEYCODE_POWER)
+                                        // ====================================================
+                                        //tvMessage.append("\n" + "mConnect = " + mConnect);
+                                        tvMessage.append("\n" + "Подключаемся повторно, пишите!");
+                                         {onOpenClick();}
+                                        //if (mConnect.getSocket().isClosed()) {onOpenClick();}
+                                    }
+
                                 }
                             });
 
-                            try {
-                                socket.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+
+                            mConnect.closeConnection();
+                            ////socket.close();
+
                         }
                     }
 
@@ -652,6 +683,22 @@ public class MainActivity extends AppCompatActivity{
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+
+                    }
+                    if ((typeMessage==4)) { // - Это не работает так как на момент вызова сохранения сокет уже разорван
+                        // 4 - запрос на самостоятельное отключение
+                        String str = message;
+                        //nameThisClient = str;  // - Получаем с окна имя клиента при регистрации
+                        Date data = new Date();
+                        data.getTime();
+                        System.out.println("Отправляем техническое сообщение на сервер. Тип сообщения = " + typeMessage + "  Время и дата = " + data + " Само сообщение = " + str);
+                        String s = "0" + typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/77";
+                        System.out.println("Оправляем техмесседж = " + s);
+                        try {
+                            out.writeUTF(Pack.paked(s, Sh));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }).start();
@@ -665,12 +712,12 @@ public class MainActivity extends AppCompatActivity{
         mConnect.closeConnection();
         // connectOn = 0;
         // Блокирование кнопок
-        sendBtn.setEnabled(false);
+        ///sendBtn.setEnabled(false);
         ///closeBtn.setEnabled(false);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                tvMessage.setText("Вы отключились от сервера");
+                tvMessage.append("\nВы отключились от сервера");
                 //tvUsers.setText("");
             }
         });
