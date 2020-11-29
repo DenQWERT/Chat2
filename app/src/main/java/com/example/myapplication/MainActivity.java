@@ -65,8 +65,6 @@ public class MainActivity extends AppCompatActivity{
     TextView tvMessage;
     EditText etMessage;
     Button sendBtn;
-    ///Button openBtn;
-    ///Button closeBtn;
 
     static int Sh = 2;  // Sh = 2 - шифруем  Sh=0 не шифруем
     //private String HOST = "10.0.2.2";  // Отладочный чат Андроид Студии
@@ -75,7 +73,9 @@ public class MainActivity extends AppCompatActivity{
     private int PORT = 8188;
     // Таблица цветов - https://www.color-hex.com/
     String nameThisClient="NoName";
+    int colorThisClient=0; // 0xFF003300; // темно зеленый
     int idThisClient=0;
+
     Protocol P = new Protocol(); //  - Данные пользователя в формате протокола
     Protocol P1 = new Protocol(); // - Данные текущего входящего сообщения в формате протокола
     int i01  = 0;
@@ -104,7 +104,9 @@ public class MainActivity extends AppCompatActivity{
 
         outState.putString("OLDHOST", HOST);
         outState.putString("NameThisClient", nameThisClient);
+        outState.putInt("ColorThisClient", colorThisClient);
         System.out.println("Сохранено имя по закрытию сессии nameThisClient = " + nameThisClient);
+        System.out.println("Сохранен цвет клиента colorThisClient = " + colorThisClient);
         connectOn = 1; outState.putInt("ConnectOn",connectOn); // - признак = 1 для указания на повторную установку соединения в дальнейшем
         // System.out.println("Соханены следующие данные окна сообщений = " + oldTextString);
         System.out.println("Соханены следующие данные окна сообщений = " + oldText);
@@ -115,6 +117,7 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         nameThisClient = savedInstanceState.getString("NameThisClient");
+        colorThisClient = savedInstanceState.getInt("ColorThisClient");
         System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
         HOST = savedInstanceState.getString("OLDHOST");
         oldText = savedInstanceState.getStringArrayList("messages");
@@ -123,6 +126,7 @@ public class MainActivity extends AppCompatActivity{
         super.onRestoreInstanceState(savedInstanceState);
 
         System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
+        System.out.println("Восстановлен цвет клиента colorThisClient = " + colorThisClient);
         System.out.println("Восстановлены - !!! - следующие данные окна сообщений = " + oldText);
         sendBtn.setEnabled(true);
 
@@ -134,7 +138,7 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         // !!!!!!!!!!!!!!!!!!!!! ПРИ ПОВОРОТЕ ЭКРАНА ПОИСХОДИТ РАЗРЫВ ЧАСТИЧНЫЙ СОЕДИНЕНИЯ !!!!!!!!!!!!!!!!!!!!!!
         // Строкой ниже устанавливается запрет на поворот экрана.
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // - Запрещаем поворот экрана в горизонтальный режим
         setContentView(R.layout.activity_main);
         tvMessage = findViewById(R.id.tvMessage);
         tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
@@ -248,23 +252,7 @@ public class MainActivity extends AppCompatActivity{
             case R.id.server_change :
                 //  - Действия при выборе пунка меню "Изменить сервер"
                 InetAddress iaLocal;
-                //   iaLocal = InetAddress.getLocalHost(); // - Получаем текущий адрес клиентского - приложения
 
-                // inflate the layout of the popup window
-                /*LayoutInflater inflater = (LayoutInflater)
-                        getSystemService(LAYOUT_INFLATER_SERVICE);
-                View popupView = inflater.inflate(R.layout.server_change, null);
-
-                // create the popup window
-                int width = LinearLayout.LayoutParams.WRAP_CONTENT;
-                int height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                boolean focusable = true; // lets taps outside the popup also dismiss it
-                final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
-
-                // show the popup window
-                // which view you pass in doesn't matter, it is only used for the window tolken
-                popupWindow.showAtLocation(tvMessage, Gravity.CENTER, 0, 0);
-                //popupWindow.setText("орорло");*/
                 tvMessage.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
                 tvMessage.append("\n\nТекущй IP-адрес сервера\n" + HOST + ":" + PORT/* + "\nВыберите новый IP-адрес и порт"*/);
                 // dismiss the popup window when touched
@@ -395,6 +383,7 @@ public class MainActivity extends AppCompatActivity{
 
                         in = new DataInputStream(mConnect.getSocket().getInputStream());
                         out = new DataOutputStream(mConnect.getSocket().getOutputStream());
+                        errorConnectionBlackEcran = 0;
 
                         //tvMessage.append("\n Текущий " + mConnect.getSocket().toString());
                         //String userName = in.readUTF();
@@ -403,9 +392,16 @@ public class MainActivity extends AppCompatActivity{
                         P.RazborProtocol(Pack.unpaked(in.readUTF(), Sh)); // - Читаем строку, расшифровываем и разделяем на части.
                         //P.name = P.name.replace(",","");// - убираем запятые из имени пользователя
                         idThisClient = P.idUser;
+
+
+                        if (colorThisClient==0) {
+                            colorThisClient =  whaitColor(P.idUser);
+                                P.color =  whaitColor(P.idUser);
+                            System.out.println("colorThisClient = " + colorThisClient + " whaitColor(P.idUser) = " + whaitColor(P.idUser) + " P1.idUser = " + P.idUser + " colorN = Color.RED = " + Color.RED  + " P.color=" + P.color);
+                        }
+                        System.out.println("colorThisClient = " + colorThisClient + " whaitColor(P.idUser) = " + whaitColor(P.idUser) + " P.idUser = " + P.idUser + " colorN = Color.RED = " + Color.RED + " P.color=" + P.color);
+
                         String userName = P.message;
-
-
                         //userName = userName.replace(",","");// - убираем запятые из имени пользователя
                         System.out.println("Принят сигнал от сервера =" + P.name + ":Id=" + P.idUser + " Data=" + P.data + " Message=" + P.message);
                         final String str = userName;
@@ -439,7 +435,7 @@ public class MainActivity extends AppCompatActivity{
                             Date data = new Date();
                             data.getTime(); // - Отправляем северу запрос по Типу 15 - запрос на повторное соединение.
                             System.out.println("connectOn = " + connectOn + "  /  nameThisClient = " + nameThisClient + "  /  idThisClient = " + idThisClient + " / P.name = " + P.name);
-                            out.writeUTF(Pack.paked("15/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + nameThisClient + "/41", Sh));
+                            out.writeUTF(Pack.paked("15/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/" + colorThisClient + "/6/7/" + nameThisClient + "/41", Sh));
                         }
                         if (connectOn == 0) {
                             onSendClick();
@@ -456,7 +452,7 @@ public class MainActivity extends AppCompatActivity{
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    tvMessage.append("\n" + P1.message + "Тут ваше имя от сервера");
+                                     tvMessage.append("\n" + "Ваше имя в чате - " + P1.message);
                                 }
                             });
                         }
@@ -487,13 +483,6 @@ public class MainActivity extends AppCompatActivity{
                                         int colorN = 0; // - Выбираем цвет начала сообщения в окне чата пользователя по умолчанию
                                         switch (P1.type) { //=== -  Разборщик сообщений сервера ===================================
                                             case 14: // - Выдаем клиенту список всех кто был в чате
-                                                /*String[] subStr;
-                                                String delimeter = ", "; // Разделитель
-                                                subStr = str.split(delimeter); // Разделения строки str с помощью метода split()
-                                                // Вывод результата на экран
-                                                for(int i = 0; i < subStr.length; i++) {
-                                                    System.out.println(subStr[i]);
-                                                }*/
                                                 String strktobyl = P1.message;
                                                 String Name = "NoName";
                                                 String id = "NoId";
@@ -541,7 +530,10 @@ public class MainActivity extends AppCompatActivity{
                                                 if (P1.idUser % 6 == 0) colorN = 0xFF003300;*/// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
                                                 // https://htmlweb.ru/html/table_colors.php
 
-                                                colorN = whaitColor(P1.idUser);
+                                                //colorN = whaitColor(P1.idUser);
+                                                //colorN = colorThisClient; //P1.color;
+                                                //colorN = whaitColor(P1.color);
+                                                colorN = P1.color;
 
                                                 // - Выводим в окно чата пользователя новое полученное сообщение
                                                 String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
@@ -640,7 +632,7 @@ public class MainActivity extends AppCompatActivity{
                             data.getTime();
 
                             System.out.println("Время и дата = " + data);
-                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/41", Sh));
+                            out.writeUTF(Pack.paked("02/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/" + colorThisClient + "/6/7/" + str + "/41", Sh));
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -679,7 +671,7 @@ public class MainActivity extends AppCompatActivity{
                         data.getTime();
                         System.out.println("Отправляем техническое сообщение на сервер. Тип сообщения = " + typeMessage + "  Время и дата = " + data + " Само сообщение = " + str);
                         try {
-                            out.writeUTF(Pack.paked(typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/77", Sh));
+                            out.writeUTF(Pack.paked(typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/" + colorThisClient + "/6/7/" + str + "/77", Sh));
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -692,7 +684,7 @@ public class MainActivity extends AppCompatActivity{
                         Date data = new Date();
                         data.getTime();
                         System.out.println("Отправляем техническое сообщение на сервер. Тип сообщения = " + typeMessage + "  Время и дата = " + data + " Само сообщение = " + str);
-                        String s = "0" + typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/1/6/7/" + str + "/77";
+                        String s = "0" + typeMessage + "/" + idThisClient + "/" + data.toString() + "/" + nameThisClient + "/" + colorThisClient + "/6/7/" + str + "/77";
                         System.out.println("Оправляем техмесседж = " + s);
                         try {
                             out.writeUTF(Pack.paked(s, Sh));
