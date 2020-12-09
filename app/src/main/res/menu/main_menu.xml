@@ -37,9 +37,9 @@
         android:orderInCategory="4"
         android:title="Подписка на пользователей" />
     <item
-        android:id="@+id/self_name_change"
+        android:id="@+id/self_colortextchat_change"
         android:orderInCategory="5"
-        android:title="Изменить своё имя в чате" />
+        android:title="! - Изменить цвет сообщений" />
     <item
         android:id="@+id/viewAllUsers"
         android:orderInCategory="6"

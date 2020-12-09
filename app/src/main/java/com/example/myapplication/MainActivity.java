@@ -75,6 +75,7 @@ public class MainActivity extends AppCompatActivity{
     String nameThisClient="NoName";
     int colorThisClient=0; // 0xFF003300; // темно зеленый
     int idThisClient=0;
+    int systemFontColorChat = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
 
     Protocol P = new Protocol(); //  - Данные пользователя в формате протокола
     Protocol P1 = new Protocol(); // - Данные текущего входящего сообщения в формате протокола
@@ -105,6 +106,8 @@ public class MainActivity extends AppCompatActivity{
         outState.putString("OLDHOST", HOST);
         outState.putString("NameThisClient", nameThisClient);
         outState.putInt("ColorThisClient", colorThisClient);
+        outState.putInt("systemFontColorChat", systemFontColorChat);
+
         System.out.println("Сохранено имя по закрытию сессии nameThisClient = " + nameThisClient);
         System.out.println("Сохранен цвет клиента colorThisClient = " + colorThisClient);
         connectOn = 1; outState.putInt("ConnectOn",connectOn); // - признак = 1 для указания на повторную установку соединения в дальнейшем
@@ -118,6 +121,7 @@ public class MainActivity extends AppCompatActivity{
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         nameThisClient = savedInstanceState.getString("NameThisClient");
         colorThisClient = savedInstanceState.getInt("ColorThisClient");
+        systemFontColorChat = savedInstanceState.getInt("systemFontColorChat");
         System.out.println("Восстановлено имя по открытии сессии nameThisClient = " + nameThisClient);
         HOST = savedInstanceState.getString("OLDHOST");
         oldText = savedInstanceState.getStringArrayList("messages");
@@ -157,7 +161,7 @@ public class MainActivity extends AppCompatActivity{
         if (mConnect == null) onOpenClick();
 
         tvMessage.append("Добро пожаловать в Чат на сервере" + HOST + "!\n" /*\nВыберите справа сверху в меню подключение к серверу вашего чата"*/);
-        tvMessage.setTextColor(Color.RED);
+        tvMessage.setTextColor(systemFontColorChat);
         int colorN=0;
         for(String onestroka : oldText){
             try {  P1.RazborProtocol(onestroka); }
@@ -169,7 +173,7 @@ public class MainActivity extends AppCompatActivity{
             wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
             Spannable wordTwo = new SpannableString(" " + P1.message);
-            wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            wordTwo.setSpan(new ForegroundColorSpan(systemFontColorChat), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
             // Скролим текст вниз:
             Editable editable = tvMessage.getEditableText(); Selection.setSelection(editable, editable.length());
@@ -226,7 +230,7 @@ public class MainActivity extends AppCompatActivity{
         switch(id){
             case R.id.connectLocal: // - Действия при выборе пунка меню "Соединяемся с локальным Андроид-Сервером 10.0.2.2"
                 HOST = "10.0.2.2";
-                tvMessage.append("\n\nТекущй IP-адрес сервера изменен на \n" + HOST + ":" + PORT/* + "\n\nВыбирите в меню Подключиться к чату"*/);
+                tvMessage.append("\n\nТекущй IP-адрес сервера изменен на \n" + HOST + ":" + PORT + " "/* + "\n\nВыбирите в меню Подключиться к чату"*/);
                 connectOn = 0;
                 onOpenClick();
                 return true;
@@ -273,9 +277,6 @@ public class MainActivity extends AppCompatActivity{
                 onCloseClick();
                 return true;
             case R.id.users_subscribe_settings: // - Действия при выборе пунка меню "Подписаться на пользователей"
-                return true;
-            case R.id.self_name_change:
-                // - Действия при выборе пунка меню "Изменить свое имя в чате"
                 // - Диалоговое окно. Честно стырено отсюда - https://randroid.ru/dev/android-studio-dialogovoe-okno-alertdialog
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle("Важное сообщение!")
@@ -290,6 +291,20 @@ public class MainActivity extends AppCompatActivity{
                                 });
                 AlertDialog alert = builder.create();
                 alert.show();
+                return true;
+            case R.id.self_colortextchat_change:
+                // - Действия при выборе пунка меню "Изменить цвет системного шрифта чата"
+                if (iColor % 6 == 0) systemFontColorChat = Color.RED;
+                if (iColor % 6 == 1) systemFontColorChat = Color.BLUE;
+                if (iColor % 6 == 2) systemFontColorChat = Color.MAGENTA;
+                if (iColor % 6 == 3) systemFontColorChat = 0xFF9900FF;// Малиновый 0xFF9900FF
+                if (iColor % 6 == 4) systemFontColorChat = 0xFF660033;// T-красный 0xFF660033
+                if (iColor % 6 == 5) systemFontColorChat = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+                iColor++;
+                // systemFontColorChat = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+
+
+
                 return true;
             case R.id.viewAllUsers:
                 // - Действия при выборе пунка меню "Список кто сегодня был в чате"
@@ -317,7 +332,7 @@ public class MainActivity extends AppCompatActivity{
                 // - Действия при выборе пунка меню "Показать кто сейчас в чате"
                 System.out.println("Запрашиваем список кто сейчас в чате");
                 SendTechMessagesClientToServer(11,"Сервер, покажи кто сейчас в чате");
-                tvMessage.append("\n-------------------------- ");
+                //tvMessage.append("\n-------------------------- ");
                 return true;
             case R.id.getMaxOLdMessages10:
                 // - Действия при выборе пунка меню "Показать последние 10 сообщений"
@@ -366,7 +381,7 @@ public class MainActivity extends AppCompatActivity{
 
             //tvMessage.setMovementMethod(new ScrollingMovementMethod()); // - устанавливаем скроллинг в окно с сообщениями
             //etMessage.setMovementMethod(new ScrollingMovementMethod());
-            tvMessage.setTextColor(Color.RED); // - установим красный текст в окне сообщений
+            tvMessage.setTextColor(systemFontColorChat); // - установим красный текст в окне сообщений
             //tvMessage.append("\n\n ConnectOn = 0 " + connectOn);
             //connectOn = 1;
         }
@@ -390,7 +405,7 @@ public class MainActivity extends AppCompatActivity{
                         //String userName = Pack.unpaked(in.readUTF(),Sh);
                         System.out.println("Текущий сокет - !!! - " + mConnect.getSocket());
                         P.RazborProtocol(Pack.unpaked(in.readUTF(), Sh)); // - Читаем строку, расшифровываем и разделяем на части.
-                        //P.name = P.name.replace(",","");// - убираем запятые из имени пользователя
+
                         idThisClient = P.idUser;
 
 
@@ -421,6 +436,9 @@ public class MainActivity extends AppCompatActivity{
                         }
                         //=======================   Запрос на имя от сервера =====================================
                         newMessage = Pack.unpaked(in.readUTF(),Sh); // - 01 - тип сообщеия / "Введите свое имя..."
+                        System.out.println("Сервер прислал сообщение 1 - " + newMessage);
+
+
                         P1.RazborProtocol(newMessage);
                         if (connectOn == 0) {
                             runOnUiThread(new Runnable() {
@@ -448,11 +466,16 @@ public class MainActivity extends AppCompatActivity{
                         //=======================   Сервер отвечает - ваше имя такое то =====================================
                         newMessage = Pack.unpaked(in.readUTF(),Sh); // - 01 - тип сообщеия / "Введите свое имя..."
                         P1.RazborProtocol(newMessage);
+                        //nameThisClient = P1.message;
+                        //System.out.println("Сервер прислал сообщение 2 - " + newMessage);
+                        //System.out.println("name = " + nam);
+
                         if (connectOn == 0) {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                     tvMessage.append("\n" + "Ваше имя в чате - " + P1.message);
+                                     //System.out.println("P1.message - входящее имя пользователя = " + nameThisClient);
+                                     tvMessage.append("\n" + "Ваше имя в чате - " + nameThisClient);
                                 }
                             });
                         }
@@ -520,7 +543,21 @@ public class MainActivity extends AppCompatActivity{
                                                 //oldText.add(tempstring);
 
                                                 break;
-                                            case 2: case 3: case 11: case 13:
+                                            case 11:
+                                                // - Выводим список тех кто СЕЙЧАС в чате:
+                                                Spannable wordTwo = new SpannableString("\n--------------------------\n " + P1.message /*+ "\n-------------------------- "*/);
+                                                wordTwo.setSpan(new ForegroundColorSpan(systemFontColorChat), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
+                                                //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
+
+                                                // Скролим текст вниз!!!
+                                                Editable editable = tvMessage.getEditableText();
+                                                Selection.setSelection(editable, editable.length());
+
+                                                oldMessage = P1.message;
+
+                                                break;
+                                            case 2: case 3: case 13:
                                                 // - Выбираем цвет начала сообщения в окне чата пользователя
                                                 /*if (P1.idUser % 6 == 5) colorN = Color.RED;
                                                 if (P1.idUser % 6 == 4) colorN = Color.BLUE;
@@ -534,19 +571,21 @@ public class MainActivity extends AppCompatActivity{
                                                 //colorN = colorThisClient; //P1.color;
                                                 //colorN = whaitColor(P1.color);
                                                 colorN = P1.color;
+                                                if (P1.type == 11 ) colorN = Color.RED;
 
                                                 // - Выводим в окно чата пользователя новое полученное сообщение
                                                 String time = P1.data.substring(P1.data.indexOf(':') - 2, P1.data.indexOf(':') + 3); // - Выбираем из времени часы и минуты в строковом виде
                                                 Spannable wordOne = new SpannableString("\n" + time + " " + P1.name);
                                                 wordOne.setSpan(new ForegroundColorSpan(colorN), 0, wordOne.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                                                 tvMessage.append(wordOne);// - Выводим покрашенную в свой цвет часть текста на экран пользователю
-                                                Spannable wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
-                                                wordTwo.setSpan(new ForegroundColorSpan(Color.RED), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                wordTwo = new SpannableString(/*"-№" + P1.idUser + */" " + P1.message);
+                                                //systemFontColorChat
+                                                wordTwo.setSpan(new ForegroundColorSpan(colorN/*systemFontColorChat*/), 0, wordTwo.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                                                 tvMessage.append(wordTwo);// - Выводим покрашенную в другой цвет часть текста на экран пользователю
                                                 //tvMessage.append("\n" + P1.name + " Кл.№" + P1.idUser + " " + P1.message + " i01=" + i01);
 
                                                 // Скролим текст вниз!!!
-                                                Editable editable = tvMessage.getEditableText();
+                                                editable = tvMessage.getEditableText();
                                                 Selection.setSelection(editable, editable.length());
 
                                                 oldMessage = P1.message;
@@ -719,12 +758,12 @@ public class MainActivity extends AppCompatActivity{
 // ====================  - Метод для определения в какой цвет красить клиента по его номеру id ================
     int whaitColor(int id){  // - Всего шесть цветов клиентов в окне сообщений
         int colorN = 0;
-        if (id % 6 == 5) colorN = Color.RED;
-        if (id % 6 == 4) colorN = Color.BLUE;
-        if (id % 6 == 3) colorN = Color.MAGENTA;
-        if (id % 6 == 2) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
-        if (id % 6 == 1) colorN = 0xFF660033;// T-красный 0xFF660033
-        if (id % 6 == 0) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
+        if (id % 6 == 0) colorN = Color.RED;
+        if (id % 6 == 1) colorN = Color.BLUE;
+        if (id % 6 == 2) colorN = Color.MAGENTA;
+        if (id % 6 == 3) colorN = 0xFF9900FF;// Малиновый 0xFF9900FF
+        if (id % 6 == 4) colorN = 0xFF660033;// T-красный 0xFF660033
+        if (id % 6 == 5) colorN = 0xFF003300;// Т-Зеленый https://ege-ok.ru/wp-content/uploads/2015/06/a43.png
         // https://htmlweb.ru/html/table_colors.php
         return colorN;
     }

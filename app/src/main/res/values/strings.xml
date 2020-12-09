@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Шифро-Чат, vers.3.8</string>
+    <string name="app_name">Шифро-Чат, vers.4.0</string>
     <string name="hinEtMessage">Введите сообщение...</string>
     <string name="openBtn">Войти</string>
     <string name="closeBtn">Выйти</string>
